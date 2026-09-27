@@ -633,17 +633,42 @@ function resetUpload(){
   analyzeBtn.onclick = () => startAnalysisFromUpload();
 }
 
+function triggerBulkFileSelect(){
+  const input = document.getElementById('bulkFileInput');
+  if (input) input.click();
+}
+
+function handleBulkFileSelect(e){
+  if (e.target.files && e.target.files.length > 0){
+    const count = e.target.files.length;
+    const note = document.querySelector('.employer-empty-state');
+    const analyzeBtn = document.querySelector('#employerPanel .home-primary-action');
+    if (note) note.textContent = `${count} candidate resume${count > 1 ? 's' : ''} uploaded and ready for candidate screening.`;
+    if (analyzeBtn) {
+      analyzeBtn.disabled = false;
+      analyzeBtn.classList.remove('employer-disabled');
+      analyzeBtn.onclick = () => {
+        toast(`Analyzing ${count} candidate resumes...`);
+        setTimeout(() => goTo('Job Matches'), 1000);
+      };
+    }
+    toast(`${count} candidate resume${count > 1 ? 's' : ''} selected`);
+  }
+}
+
 let toastTimer;
 function toast(msg){
   const el = document.getElementById('toast');
-  el.textContent = msg === 'Changes saved' ? '✓ Changes saved' : msg + ' — coming soon';
+  if (!el) return;
+  const formatted = msg.startsWith('✓') || msg.startsWith('🔒') || msg.startsWith('⚡') || msg.startsWith('🎉') ? msg : '✓ ' + msg;
+  el.textContent = formatted;
   el.style.opacity = '1';
   el.style.transform = 'translateY(0)';
   clearTimeout(toastTimer);
   toastTimer = setTimeout(() => {
     el.style.opacity = '0';
     el.style.transform = 'translateY(10px)';
-  }, 1400);
+  }, 1800);
 }
 
 normalizeStatusBars();

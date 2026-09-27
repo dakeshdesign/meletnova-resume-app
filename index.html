@@ -175,11 +175,12 @@
           <div class="employer-file-note" id="employerFileNote" hidden>Job-description file upload will connect when employer analysis is available.</div>
 
           <div class="home-section-heading">Upload resumes <span>(bulk)</span></div>
+          <input type="file" id="bulkFileInput" multiple accept=".pdf,.doc,.docx,.txt" style="display:none;" onchange="handleBulkFileSelect(event)">
           <div class="employer-empty-upload">
             <div class="upload-icon" aria-hidden="true">↑</div>
             <strong>Drag &amp; drop multiple resumes</strong>
             <span>PDF, DOCX or TXT</span>
-            <button class="home-secondary-action" onclick="toast('Bulk resume upload')">Choose files</button>
+            <button class="home-secondary-action" onclick="triggerBulkFileSelect()">Choose files</button>
           </div>
           <div class="employer-empty-state">No candidate files uploaded yet.</div>
           <button class="btn home-primary-action employer-disabled" disabled>Analyze candidates <span>→</span></button>
