@@ -1,0 +1,1435 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Meletnova Resume — Android App Design</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css?v=15">
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+</head>
+<body>
+
+<div class="desktop-demo-layout">
+  <!-- CENTERED 9:16 PHONE PREVIEW -->
+  <main class="demo-preview-wrap">
+    <div class="phone" id="phone">
+
+  <!-- ============ SCREEN: SPLASH ============ -->
+  <div class="screen active" data-name="Splash">
+    <div style="width:100%;height:100%;background:var(--cream);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;">
+      <div class="statusbar"><span>9:41</span><span>status</span></div>
+      <!-- Official MeltNova logo asset slot -->
+      <div class="splash-mark splash-logo-slot" aria-label="MeleteNova logo">
+        <img src="assets/official-logo.png" alt="MeleteNova logo">
+      </div>
+      <div class="splash-text" style="text-align:center;">
+        <div style="font-family:'Sora';font-weight:600;font-size:17px;color:var(--navy);letter-spacing:0.1px;">MeleteNova Solutions Presents</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ SCREEN: LOGIN ============ -->
+  <div class="screen" data-name="Login">
+    <div class="scroll">
+      <div class="statusbar"><span>9:41</span><span>status</span></div>
+      <div class="content-pad-noNav" style="padding-top:36px;">
+        <div class="logo-mark"><img src="assets/official-logo.png" alt="MeleteNova logo"></div>
+        <h1 style="font-size:30px;color:var(--navy);margin-top:22px;line-height:1.15;">Welcome back</h1>
+        <p style="color:var(--ink-muted);font-size:14.5px;margin-top:8px;">Log in to keep improving your resume with Meletnova.</p>
+
+        <div style="margin-top:28px;display:flex;flex-direction:column;gap:12px;">
+          <div>
+            <div style="font-size:12.5px;font-weight:600;color:var(--navy);margin-bottom:7px;">Email</div>
+            <input class="input" placeholder="you@email.com">
+          </div>
+          <div>
+            <div style="font-size:12.5px;font-weight:600;color:var(--navy);margin-bottom:7px;">Password</div>
+            <input class="input" type="password" placeholder="••••••••">
+          </div>
+          <div style="text-align:right;">
+            <span class="tappable" style="font-size:13px;color:var(--purple);font-weight:600;" onclick="goTo('Forgot Password')">Forgot password?</span>
+          </div>
+        </div>
+
+        <button class="btn btn-primary" id="loginBtn" style="width:100%;margin-top:22px;" onclick="handleLogin()">Log in</button>
+
+        <div style="display:flex;align-items:center;gap:10px;margin:22px 0;">
+          <div style="flex:1;height:1px;background:rgba(23,42,56,0.14);"></div>
+          <span style="font-size:12px;color:var(--ink-muted);">or continue with</span>
+          <div style="flex:1;height:1px;background:rgba(23,42,56,0.14);"></div>
+        </div>
+
+        <div style="display:flex;gap:12px;">
+          <button class="btn btn-ghost" style="flex:1;font-size:13.5px;" onclick="beginAuth('Google')">Google</button>
+          <button class="btn btn-ghost" style="flex:1;font-size:13.5px;" onclick="beginAuth('LinkedIn')">LinkedIn</button>
+        </div>
+
+        <p style="text-align:center;font-size:13.5px;color:var(--ink-muted);margin-top:26px;">
+          New here? <span class="tappable" style="color:var(--purple);font-weight:700;">Sign up</span>
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ SCREEN: FORGOT PASSWORD ============ -->
+  <div class="screen" data-name="Forgot Password">
+    <div class="scroll">
+      <div class="statusbar"><span>9:41</span><span>status</span></div>
+      <div class="content-pad-noNav" style="padding-top:36px;">
+        <div class="tappable back-link" onclick="goBack()">Back</div>
+        <h1 style="font-size:26px;color:var(--navy);margin-top:20px;">Reset password</h1>
+        <p style="color:var(--ink-muted);font-size:14px;margin-top:8px;">We'll send a reset link to your email.</p>
+        <div style="margin-top:22px;">
+          <div style="font-size:12.5px;font-weight:600;color:var(--navy);margin-bottom:7px;">Email</div>
+          <input class="input" placeholder="you@email.com" id="resetEmail">
+        </div>
+        <button class="btn btn-primary" style="width:100%;margin-top:20px;" id="resetBtn" onclick="handleReset()">Send reset link</button>
+        <div class="card" id="resetSuccess" style="display:none; margin-top:18px; background:var(--lavender);">
+          <div style="font-weight:700;font-size:14px;color:var(--navy);">Check your inbox</div>
+          <div style="font-size:13px;color:var(--navy);margin-top:4px;">A reset link is on its way.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ SCREEN: HOME ============ -->
+  <div class="screen" data-name="Home">
+    <div class="scroll">
+      <div class="statusbar"><span>9:41</span><span>status</span></div>
+      <div class="content-pad">
+        <div class="home-header">
+          <div>
+            <div class="home-eyebrow">MELTNOVA</div>
+            <h1 id="homeGreetingHeader">Good morning</h1>
+          </div>
+          <div class="tappable home-avatar" id="homeAvatar" onclick="goTo('Profile')">👤</div>
+        </div>
+
+        <div class="mode-switch" role="tablist" aria-label="MeltNova mode">
+          <button class="mode-tab active" id="jobSeekerModeBtn" role="tab" aria-selected="true" onclick="setHomeMode('jobSeeker')">&#128100; Job Seeker</button>
+          <button class="mode-tab" id="employerModeBtn" role="tab" aria-selected="false" onclick="setHomeMode('employer')">&#128188; Employer</button>
+        </div>
+
+        <div class="home-mode-panel active" id="jobSeekerPanel" role="tabpanel">
+          <div class="home-title-row">
+            <div>
+              <div class="home-kicker">RESUME INTELLIGENCE</div>
+              <h2>Make your resume work harder.</h2>
+              <p>Choose an analysis, upload your resume, and get practical next steps.</p>
+            </div>
+            <div class="home-step-count">01<br><span>of 02</span></div>
+          </div>
+
+          <label class="home-field-label" for="analysisType">Choose analysis type</label>
+          <select class="analysis-select" id="analysisType">
+            <option>Detailed Suggestions &amp; Improvements</option>
+            <option>Job Description Matcher</option>
+            <option>Quick Resume Scan</option>
+            <option>ATS Compatibility Check</option>
+            <option>Resume Strength Analysis</option>
+            <option>Keyword Analysis</option>
+            <option>Skills Gap Analysis</option>
+            <option>Experience &amp; Impact Analysis</option>
+          </select>
+
+          <div class="home-upload-card">
+            <div class="upload-icon" aria-hidden="true">↑</div>
+            <div>
+              <strong>Upload your resume</strong>
+              <span>PDF, DOCX or TXT · up to 10MB</span>
+            </div>
+            <button class="home-secondary-action" onclick="goTo('Upload')">Choose file</button>
+          </div>
+
+          <button class="btn home-primary-action" onclick="goTo('Upload')">&#10022; Analyze my resume <span>→</span></button>
+
+          <div class="why-panel">
+            <div class="home-kicker">WHY MELTNOVA?</div>
+            <div class="why-grid">
+              <div><b>✦</b><strong>AI-powered analysis</strong><span>Useful insights from your resume.</span></div>
+              <div><b>✓</b><strong>ATS compatibility</strong><span>See how systems read your resume.</span></div>
+              <div><b>↗</b><strong>Actionable feedback</strong><span>Specific ways to improve.</span></div>
+              <div><b>◎</b><strong>Score &amp; insights</strong><span>Understand your strongest gaps.</span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="home-mode-panel" id="employerPanel" role="tabpanel" hidden>
+          <div class="home-title-row">
+            <div>
+              <div class="home-kicker">CANDIDATE SCREENING</div>
+              <h2>Shortlist with more signal.</h2>
+              <p>Prepare a job description and organize candidate resumes in one place.</p>
+            </div>
+            <div class="home-step-count">01<br><span>of 03</span></div>
+          </div>
+
+          <div class="home-section-heading">Target job description</div>
+          <div class="employer-source-switch">
+            <button class="employer-source active" onclick="setEmployerSource('paste', this)">Paste text</button>
+            <button class="employer-source" onclick="setEmployerSource('file', this)">Upload file</button>
+          </div>
+          <textarea class="employer-textarea" id="employerJobDescription" placeholder="Paste the job description here..."></textarea>
+          <div class="employer-file-note" id="employerFileNote" hidden>Job-description file upload will connect when employer analysis is available.</div>
+
+          <div class="home-section-heading">Upload resumes <span>(bulk)</span></div>
+          <div class="employer-empty-upload">
+            <div class="upload-icon" aria-hidden="true">↑</div>
+            <strong>Drag &amp; drop multiple resumes</strong>
+            <span>PDF, DOCX or TXT</span>
+            <button class="home-secondary-action" onclick="toast('Bulk resume upload')">Choose files</button>
+          </div>
+          <div class="employer-empty-state">No candidate files uploaded yet.</div>
+          <button class="btn home-primary-action employer-disabled" disabled>Analyze candidates <span>→</span></button>
+          <div class="employer-availability">Employer screening results are not connected in the current application yet.</div>
+
+          <div class="why-panel">
+            <div class="home-kicker">WHY MELTNOVA?</div>
+            <div class="why-grid">
+              <div><b>✦</b><strong>AI candidate screening</strong><span>Analyze resumes efficiently.</span></div>
+              <div><b>↔</b><strong>Job matching</strong><span>Compare against requirements.</span></div>
+              <div><b>◎</b><strong>Candidate insights</strong><span>See strengths and gaps.</span></div>
+              <div><b>→</b><strong>Faster shortlisting</strong><span>Keep review organized.</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="bottomnav">
+      <div class="navicon active" data-target="Home" onclick="navTap(this,'Home')">
+        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        <span class="nav-label">Home</span>
+      </div>
+      <div class="navicon" data-target="Upload" onclick="navTap(this,'Upload')">
+        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><polyline points="9 15 12 12 15 15"/></svg>
+        <span class="nav-label">Upload</span>
+      </div>
+      <div class="navicon" data-target="History" onclick="navTap(this,'History')">
+        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        <span class="nav-label">History</span>
+      </div>
+      <div class="navicon" data-target="Profile" onclick="navTap(this,'Profile')">
+        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        <span class="nav-label">Profile</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ SCREEN: UPLOAD ============ -->
+  <div class="screen" data-name="Upload">
+    <div class="scroll">
+      <div class="statusbar"><span>9:41</span><span>status</span></div>
+      <div class="content-pad">
+        <h1 style="font-size:24px;color:var(--navy);">Upload resume</h1>
+        <p style="color:var(--ink-muted);font-size:14px;margin-top:6px;">PDF or DOCX, up to 10MB.</p>
+
+        <input type="file" id="realFileInput" accept=".pdf,.doc,.docx,.txt" style="display:none;" onchange="handleFileSelect(event)">
+
+        <div style="margin-top:20px;">
+          <div style="font-size:12.5px;font-weight:700;color:var(--ink-muted);margin-bottom:8px;">RESUME UPLOAD</div>
+          <div class="tappable" id="dropzone" style="border:2px dashed rgba(23,42,56,0.22);border-radius:28px;padding:34px 20px;text-align:center;transition:all .2s ease;" onclick="triggerFileSelect()" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleFileDrop(event)">
+            <div style="width:52px;height:52px;border-radius:16px;background:#2563EB;display:flex;align-items:center;justify-content:center;margin:0 auto;box-shadow:0 4px 12px rgba(37,99,235,0.25);">
+              <svg class="ico" style="color:#FFFFFF;stroke:#FFFFFF;opacity:1;" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="#FFFFFF" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4"/><path d="M6 10l6-6 6 6"/><path d="M4 20h16"/></svg>
+            </div>
+            <div style="font-family:'Sora';font-weight:700;font-size:15.5px;color:var(--navy);margin-top:14px;">Upload your resume</div>
+            <div style="font-size:13px;color:var(--ink-muted);margin-top:4px;">PDF, DOC, DOCX, or TXT (Max 10MB)</div>
+          </div>
+        </div>
+
+        <div id="uploadProgressWrap" style="margin-top:20px; display:none;">
+          <div style="font-size:12.5px;font-weight:700;color:var(--ink-muted);margin-bottom:8px;">UPLOADING</div>
+          <div class="card">
+            <div style="display:flex;justify-content:space-between;font-size:13px;color:var(--navy);font-weight:600;">
+              <span id="selectedFileNameProgress">Resume_Aditi_v4.pdf</span><span id="progressPct">0%</span>
+            </div>
+            <div style="height:8px;background:var(--lavender);border-radius:999px;margin-top:10px;overflow:hidden;">
+              <div id="progressBar" style="height:100%;width:0%;background:var(--purple);border-radius:999px;transition:width .25s ease;"></div>
+            </div>
+          </div>
+        </div>
+
+        <div id="uploadDoneWrap" style="margin-top:20px; display:none;">
+          <div style="font-size:12.5px;font-weight:700;color:var(--ink-muted);margin-bottom:8px;">UPLOADED FILE</div>
+          <div class="card" style="display:flex;align-items:center;gap:14px; animation:fadeUp .35s ease;">
+            <div id="uploadedBadge" style="width:44px;height:44px;border-radius:14px;background:var(--purple);display:flex;align-items:center;justify-content:center;color:var(--white);font-family:'Sora';font-weight:800;font-size:11px;">PDF</div>
+            <div style="flex:1;overflow:hidden;">
+              <div id="uploadedFileName" style="font-weight:700;font-size:14.5px;color:var(--navy);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Resume_Aditi_v4.pdf</div>
+              <div id="uploadedFileSize" style="font-size:12.5px;color:var(--ink-muted);margin-top:2px;">2.1 MB · Ready for analysis</div>
+            </div>
+            <div class="tappable" style="font-size:13px;color:var(--purple);font-weight:700;" onclick="resetUpload()">Remove / Replace</div>
+          </div>
+        </div>
+
+        <div id="uploadErrorWrap" style="margin-top:20px; display:none;">
+          <div style="font-size:12.5px;font-weight:700;color:var(--ink-muted);margin-bottom:8px;">UPLOAD ERROR</div>
+          <div class="card" style="background:#FFECEA;border:1px solid #FECACA;">
+            <div style="font-weight:700;font-size:14.5px;color:var(--navy);">Upload failed</div>
+            <div id="uploadErrorText" style="font-size:13px;color:var(--navy);margin-top:4px;line-height:1.4;">The file is larger than 10MB. Try compressing it and upload again.</div>
+            <button class="btn btn-ghost" style="margin-top:14px;padding:12px;font-size:13.5px;background:#FFFFFF;" onclick="triggerFileSelect()">Choose another file</button>
+          </div>
+        </div>
+
+        <button class="btn btn-primary" id="analyzeBtn" style="width:100%;margin-top:24px;" onclick="startAnalysisFromUpload()" disabled>Analyze resume</button>
+      </div>
+    </div>
+    <div class="bottomnav">
+      <div class="navicon" data-target="Home" onclick="navTap(this,'Home')">
+        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        <span class="nav-label">Home</span>
+      </div>
+      <div class="navicon active" data-target="Upload" onclick="navTap(this,'Upload')">
+        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><polyline points="9 15 12 12 15 15"/></svg>
+        <span class="nav-label">Upload</span>
+      </div>
+      <div class="navicon" data-target="History" onclick="navTap(this,'History')">
+        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        <span class="nav-label">History</span>
+      </div>
+      <div class="navicon" data-target="Profile" onclick="navTap(this,'Profile')">
+        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        <span class="nav-label">Profile</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ SCREEN: ANALYZING ============ -->
+  <div class="screen" data-name="Analyzing">
+    <div style="width:100%;height:100%;background:var(--navy);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;padding:0 40px;text-align:center;">
+      <div style="width:64px;height:64px;border-radius:20px;border:3px solid rgba(255,255,255,0.18);border-top-color:var(--lime);animation:spin 1s linear infinite;"></div>
+      <div>
+        <div style="font-family:'Sora';font-weight:700;font-size:19px;color:var(--white);">Analyzing your resume</div>
+        <div style="font-size:13.5px;color:rgba(255,255,255,0.6);margin-top:8px;line-height:1.5;">Checking formatting, keywords and structure against the job description.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ SCREEN: ATS RESULT ============ -->
+  <div class="screen" data-name="ATS Result">
+    <div class="scroll">
+      <div class="statusbar"><span>9:41</span><span>status</span></div>
+      <div class="content-pad">
+        <div class="ats-overline">YOUR RESUME IS READY</div>
+
+        <div class="block" style="background:var(--navy);margin-top:12px;text-align:center;padding:32px 20px;">
+          <div id="atsScoreDisplay" style="font-family:'Sora';font-weight:800;font-size:76px;color:var(--lime);line-height:1;">82</div>
+          <div style="font-size:13px;font-weight:700;color:rgba(255,255,255,0.7);letter-spacing:0.4px;margin-top:6px;">ATS SCORE</div>
+          <div id="atsMatchBadge" class="chip" style="background:var(--lime);color:var(--navy);margin-top:16px;">Strong match</div>
+          <div class="score-track" aria-label="82 percent ATS score"><span></span></div>
+        </div>
+
+        <div style="display:flex;gap:14px;margin-top:16px;">
+          <div class="block tappable" style="background:var(--lavender);flex:1;" onclick="goTo('Keywords')">
+            <div id="atsMatchedCount" style="font-family:'Sora';font-weight:800;font-size:24px;color:var(--purple);">12</div>
+            <div style="font-size:12px;color:var(--navy);font-weight:600;margin-top:2px;">Matched keywords</div>
+          </div>
+          <div class="block tappable" style="background:#FFECEA;flex:1;" onclick="goTo('Keywords')">
+            <div id="atsMissingCount" style="font-family:'Sora';font-weight:800;font-size:24px;color:var(--coral);">4</div>
+            <div style="font-size:12px;color:var(--navy);font-weight:600;margin-top:2px;">Missing keywords</div>
+          </div>
+        </div>
+
+        <div style="margin-top:22px;">
+          <div style="font-size:11.5px;font-weight:700;color:var(--ink-muted);letter-spacing:0.5px;margin-bottom:8px;">ANALYSIS VIEW</div>
+          <div class="custom-select-wrap" id="analysisTypeDropdown">
+            <button class="custom-select-trigger" onclick="toggleAnalysisDropdown(event)" aria-expanded="false" aria-haspopup="listbox">
+              <span id="selectedAnalysisTypeLabel">Detailed Suggestions & Improvements</span>
+              <svg class="dropdown-chevron" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+            </button>
+            <div class="custom-select-panel" id="analysisDropdownPanel" role="listbox">
+              <div class="select-option selected" onclick="selectAnalysisOption('Detailed Suggestions & Improvements', this)">
+                <span>Detailed Suggestions & Improvements</span>
+                <svg class="check-ico" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#2563EB" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+              </div>
+              <div class="select-option" onclick="selectAnalysisOption('ATS Keyword Breakdown', this)">
+                <span>ATS Keyword Breakdown</span>
+              </div>
+              <div class="select-option" onclick="selectAnalysisOption('Skills & Qualification Match', this)">
+                <span>Skills & Qualification Match</span>
+              </div>
+              <div class="select-option" onclick="selectAnalysisOption('Formatting & Structure Review', this)">
+                <span>Formatting & Structure Review</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div style="margin-top:20px;">
+          <div style="font-family:'Sora';font-weight:700;font-size:16px;color:var(--navy);margin-bottom:10px;">Strengths</div>
+          <div class="card">
+            <div id="atsStrengthsText" style="font-size:14px;color:var(--navy);line-height:1.6;">Clear work history with quantified results, and a format that parses cleanly through most ATS systems.</div>
+          </div>
+        </div>
+
+        <div style="margin-top:18px;">
+          <div style="font-family:'Sora';font-weight:700;font-size:16px;color:var(--navy);margin-bottom:10px;">Recommendations</div>
+          <div class="card">
+            <div id="atsRecommendationsText" style="font-size:14px;color:var(--navy);line-height:1.6;">Add the missing keywords into your experience bullets, and shorten your summary to three lines.</div>
+          </div>
+        </div>
+
+        <!-- PREMIUM FEATURE LOCK DEMO: ML REVENUE FORECASTING -->
+        <div style="margin-top:20px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+            <div style="font-family:'Sora';font-weight:700;font-size:16px;color:var(--navy);">ML Revenue Forecasting</div>
+            <span class="locked-badge" id="mlForecastBadge" style="background:#FEF3C7;color:#D97706;font-size:10.5px;font-weight:800;padding:3px 9px;border-radius:999px;">🔒 Pro Feature</span>
+          </div>
+          <div class="card" id="mlForecastCard" style="position:relative;overflow:hidden;padding:18px;border-radius:20px;background:#FFFFFF;min-height:160px;">
+            <div id="mlForecastLockOverlay" class="locked-feature-overlay" style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px 16px;text-align:center;background:rgba(255,255,255,0.92);backdrop-filter:blur(4px);position:absolute;inset:0;z-index:10;">
+              <div style="font-size:22px;margin-bottom:4px;">🔒</div>
+              <strong style="font-family:'Sora';font-size:14px;color:var(--navy);">Advanced XGBoost ML Revenue Forecast</strong>
+              <p style="font-size:12px;color:var(--ink-muted);margin-top:3px;max-width:240px;">Predict 1-month revenue impact and candidate ROI. Available with Pro.</p>
+              <button class="btn btn-primary" style="margin-top:10px;padding:8px 18px;font-size:12.5px;background:#2563EB;" onclick="goTo('Plans & Pricing')">Upgrade to Pro ⚡</button>
+            </div>
+            
+            <div style="font-size:13px;color:var(--navy);font-weight:700;">Forecasted 30-Day Growth: +24.8%</div>
+            <div style="height:80px;background:#F8FAFC;border-radius:12px;margin-top:8px;display:flex;align-items:center;justify-content:center;color:#94A3B8;font-size:12px;">[ Interactive XGBoost ML Revenue Chart ]</div>
+          </div>
+        </div>
+
+        <button class="btn btn-purple" style="width:100%;margin-top:24px;" onclick="goTo('Keywords')">View keyword details</button>
+      </div>
+    </div>
+    <div class="bottomnav">
+      <div class="navicon" data-target="Home" onclick="navTap(this,'Home')">
+        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        <span class="nav-label">Home</span>
+      </div>
+      <div class="navicon active" data-target="Upload" onclick="navTap(this,'Upload')">
+        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><polyline points="9 15 12 12 15 15"/></svg>
+        <span class="nav-label">Upload</span>
+      </div>
+      <div class="navicon" data-target="History" onclick="navTap(this,'History')">
+        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        <span class="nav-label">History</span>
+      </div>
+      <div class="navicon" data-target="Profile" onclick="navTap(this,'Profile')">
+        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        <span class="nav-label">Profile</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ SCREEN: KEYWORDS ============ -->
+  <div class="screen" data-name="Keywords">
+    <div class="scroll">
+      <div class="statusbar"><span>9:41</span><span>status</span></div>
+      <div class="content-pad">
+        <div class="tappable back-link" onclick="goBack()">Back to score</div>
+        <h1 style="font-size:24px;color:var(--navy);margin-top:14px;">Keywords</h1>
+        <p style="color:var(--ink-muted);font-size:14px;margin-top:6px;">Compared against the job description you added.</p>
+
+        <div style="margin-top:22px;">
+          <div style="font-family:'Sora';font-weight:700;font-size:15px;color:var(--navy);margin-bottom:10px;">Matched · 12</div>
+          <div style="display:flex;flex-wrap:wrap;gap:9px;">
+            <span class="chip tappable" style="background:var(--lime);color:var(--navy);">Project management</span>
+            <span class="chip tappable" style="background:var(--lime);color:var(--navy);">SQL</span>
+            <span class="chip tappable" style="background:var(--lime);color:var(--navy);">Stakeholder comms</span>
+            <span class="chip tappable" style="background:var(--lime);color:var(--navy);">Agile</span>
+            <span class="chip tappable" style="background:var(--lime);color:var(--navy);">Data analysis</span>
+            <span class="chip tappable" style="background:var(--lime);color:var(--navy);">Roadmapping</span>
+          </div>
+        </div>
+
+        <div style="margin-top:26px;">
+          <div style="font-family:'Sora';font-weight:700;font-size:15px;color:var(--navy);margin-bottom:10px;">Missing · 4</div>
+          <div style="display:flex;flex-wrap:wrap;gap:9px;">
+            <span class="chip tappable" style="background:#FFECEA;color:var(--coral);">Python</span>
+            <span class="chip tappable" style="background:#FFECEA;color:var(--coral);">A/B testing</span>
+            <span class="chip tappable" style="background:#FFECEA;color:var(--coral);">Figma</span>
+            <span class="chip tappable" style="background:#FFECEA;color:var(--coral);">Budget ownership</span>
+          </div>
+        </div>
+
+        <div class="block" style="background:var(--sky);margin-top:26px;">
+          <div style="font-family:'Sora';font-weight:700;font-size:15px;color:var(--navy);">Tip</div>
+        </div>
+      </div>
+    </div>
+    <div class="bottomnav">
+      <div class="navicon" data-target="Home" onclick="navTap(this,'Home')">
+        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        <span class="nav-label">Home</span>
+      </div>
+      <div class="navicon active" data-target="Upload" onclick="navTap(this,'Upload')">
+        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><polyline points="9 15 12 12 15 15"/></svg>
+        <span class="nav-label">Upload</span>
+      </div>
+      <div class="navicon" data-target="History" onclick="navTap(this,'History')">
+        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        <span class="nav-label">History</span>
+      </div>
+      <div class="navicon" data-target="Profile" onclick="navTap(this,'Profile')">
+        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        <span class="nav-label">Profile</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ SCREEN: HISTORY ============ -->
+  <div class="screen" data-name="History">
+    <div class="scroll">
+      <div class="statusbar"><span>9:41</span><span>status</span></div>
+      <div class="content-pad ref2-history-content">
+        
+        <!-- HISTORY HERO HEADER -->
+        <div class="ref2-history-hero">
+          <div class="ref2-hero-kicker">
+            <span>ANALYSIS ARCHIVE</span>
+            <span class="ref2-count-badge" id="historyCountBadge">1 Resume</span>
+          </div>
+          <h1 class="ref2-history-title">History</h1>
+          <p class="ref2-history-subtitle">Every resume you've analyzed with Meletnova.</p>
+        </div>
+
+        <!-- HISTORY RECORD LIST -->
+        <section class="ref2-section" style="margin-top: 20px;">
+          <div class="ref2-section-header">
+            <div>
+              <span class="ref2-section-subtitle">RECENT ANALYSES</span>
+              <h2 class="ref2-section-title">Resume history</h2>
+            </div>
+          </div>
+
+          <div class="ref2-card-list" id="historyCardList">
+            <!-- Item 1: Resume_Aditi_v3.pdf -->
+            <button class="ref2-list-item ref2-history-item" onclick="goTo('ATS Result')">
+              <div class="ref2-item-icon icon-bg-blue">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><line x1="10" y1="9" x2="8" y2="9"/></svg>
+              </div>
+              <div class="ref2-item-text">
+                <strong>Resume_Aditi_v3.pdf</strong>
+                <small>Sep 11, 2026 · Complete</small>
+              </div>
+              <div class="ref2-score-chip chip-royal">
+                82
+              </div>
+              <div class="ref2-chevron">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+              </div>
+            </button>
+
+            <!-- Item 2: Resume_Aditi_v2.pdf -->
+            <button class="ref2-list-item ref2-history-item" onclick="goTo('ATS Result')">
+              <div class="ref2-item-icon icon-bg-sky">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><line x1="10" y1="9" x2="8" y2="9"/></svg>
+              </div>
+              <div class="ref2-item-text">
+                <strong>Resume_Aditi_v2.pdf</strong>
+                <small>Sep 4, 2026 · Complete</small>
+              </div>
+              <div class="ref2-score-chip chip-sky">
+                68
+              </div>
+              <div class="ref2-chevron">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+              </div>
+            </button>
+
+            <!-- Item 3: Resume_Aditi_v1.pdf -->
+            <button class="ref2-list-item ref2-history-item" onclick="goTo('Upload')">
+              <div class="ref2-item-icon icon-bg-red">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="12" x2="12" y2="16"/><line x1="12" y1="9" x2="12.01" y2="9"/></svg>
+              </div>
+              <div class="ref2-item-text">
+                <strong>Resume_Aditi_v1.pdf</strong>
+                <small>Aug 22, 2026 · Failed</small>
+              </div>
+              <div class="ref2-score-chip chip-red">
+                Error
+              </div>
+              <div class="ref2-chevron">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+              </div>
+            </button>
+          </div>
+        </section>
+
+        <!-- EMPTY STATE EXAMPLE -->
+        <section class="ref2-section" style="margin-top: 28px;">
+          <span class="ref2-empty-kicker">EMPTY STATE (example)</span>
+          <div class="ref2-empty-card">
+            <div class="ref2-empty-icon-wrap">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            </div>
+            <h3 class="ref2-empty-title">No history yet</h3>
+            <p class="ref2-empty-text">Analyze your first resume to see it here.</p>
+            <button class="ref2-primary-btn" onclick="goTo('Upload')">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><polyline points="9 15 12 12 15 15"/></svg>
+              Upload resume
+            </button>
+          </div>
+        </section>
+
+      </div>
+    </div>
+
+    <!-- BOTTOM NAVIGATION -->
+    <div class="bottomnav">
+      <div class="navicon" data-target="Home" onclick="navTap(this,'Home')">
+        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        <span class="nav-label">Home</span>
+      </div>
+      <div class="navicon" data-target="Upload" onclick="navTap(this,'Upload')">
+        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><polyline points="9 15 12 12 15 15"/></svg>
+        <span class="nav-label">Upload</span>
+      </div>
+      <div class="navicon active" data-target="History" onclick="navTap(this,'History')">
+        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        <span class="nav-label">History</span>
+      </div>
+      <div class="navicon" data-target="Profile" onclick="navTap(this,'Profile')">
+        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        <span class="nav-label">Profile</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ SCREEN: PROFILE ============ -->
+  <div class="screen" data-name="Profile">
+    <div class="scroll">
+      <div class="statusbar"><span>9:41</span><span>status</span></div>
+      <div class="content-pad profile-content-v2">
+        
+        <!-- PROFILE HERO HEADER (REFERENCE 2 STYLE) -->
+        <div class="ref2-profile-hero">
+          <div class="ref2-hero-top">
+            <div class="ref2-hero-kicker">
+              <span>CAREER PROFILE</span>
+            </div>
+            <button class="ref2-edit-btn" onclick="goTo('Personal Details')">
+              <svg viewBox="0 0 24 24" class="ref2-btn-icon" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+              Edit profile
+            </button>
+          </div>
+
+          <div class="ref2-hero-body">
+            <div class="ref2-hero-text">
+              <h1 class="ref2-name" id="profileDisplayName">YOUR PROFILE</h1>
+              <p class="ref2-role" id="profileDisplayRole">Resume profile • Ready to refine</p>
+              <div class="ref2-tags">
+                <span class="ref2-pill-tag">@MELETNOVA</span>
+                <span class="ref2-icon-tag" title="LinkedIn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 8a6 6 0 016 6v7h-4v-7a2 2 0 00-2-2 2 2 0 00-2 2v7h-4v-7a6 6 0 016-6zM2 9h4v12H2z"/><circle cx="4" cy="4" r="2"/></svg></span>
+                <span class="ref2-icon-tag" title="GitHub"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 00-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0020 4.77 5.07 5.07 0 0019.91 1S18.73.65 16 2.48a13.38 13.38 0 00-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 005 4.77a5.44 5.44 0 00-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 009 18.13V22"/></svg></span>
+              </div>
+            </div>
+            <div class="ref2-avatar-wrap">
+              <img class="ref2-avatar-img" src="assets/lego-spiderman.jpeg" alt="Profile character visual">
+              <span class="ref2-avatar-badge" title="Active">✓</span>
+            </div>
+          </div>
+
+          <div class="ref2-hero-footer">
+            <span id="profileDisplayFooter">Building clear products, stronger applications and a career story that feels like you.</span>
+          </div>
+        </div>
+
+        <!-- SUBSCRIPTION & PLAN MANAGEMENT SECTION -->
+        <section class="ref2-section" style="margin-top:20px;">
+          <div class="ref2-section-header">
+            <div>
+              <span class="ref2-section-subtitle">MEMBERSHIP & PLAN</span>
+              <h2 class="ref2-section-title">Subscription management</h2>
+            </div>
+            <button class="ref2-edit-btn" style="background:#EFF6FF;color:#2563EB;border-color:#BFDBFE;" onclick="goTo('Plans & Pricing')">
+              ⭐ Upgrade
+            </button>
+          </div>
+
+          <div class="card subscription-hero-card" style="background:linear-gradient(135deg, #1E3A8A 0%, #2563EB 100%);color:#FFFFFF;padding:20px;border-radius:22px;box-shadow:0 10px 24px -6px rgba(37,99,235,0.25);">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+              <div>
+                <span class="sub-plan-badge" id="profilePlanBadge" style="display:inline-block;background:rgba(255,255,255,0.2);color:#FFFFFF;font-family:'Sora';font-weight:800;font-size:11px;padding:4px 10px;border-radius:999px;letter-spacing:0.5px;">FREE TRIAL</span>
+                <div style="font-family:'Sora';font-weight:800;font-size:22px;color:#FFFFFF;margin-top:10px;" id="profilePlanName">Free Trial Plan</div>
+              </div>
+              <div style="text-align:right;">
+                <div style="font-size:11px;color:rgba(255,255,255,0.7);font-weight:600;">STATUS</div>
+                <div style="font-size:13px;font-weight:700;color:#A7F3D0;margin-top:2px;" id="profilePlanStatus">● Active</div>
+              </div>
+            </div>
+
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:18px;padding-top:14px;border-top:1px solid rgba(255,255,255,0.15);font-size:12px;">
+              <div>
+                <span style="color:rgba(255,255,255,0.7);display:block;font-size:10.5px;">BILLING CYCLE</span>
+                <strong style="color:#FFFFFF;font-weight:700;" id="profileBillingCycle">Monthly</strong>
+              </div>
+              <div>
+                <span style="color:rgba(255,255,255,0.7);display:block;font-size:10.5px;">RENEWAL / EXPIRY</span>
+                <strong style="color:#FFFFFF;font-weight:700;" id="profileRenewalDate">Lifetime</strong>
+              </div>
+              <div>
+                <span style="color:rgba(255,255,255,0.7);display:block;font-size:10.5px;">AMOUNT PAID</span>
+                <strong style="color:#FFFFFF;font-weight:700;" id="profileAmountPaid">₹0</strong>
+              </div>
+              <div>
+                <span style="color:rgba(255,255,255,0.7);display:block;font-size:10.5px;">PAYMENT METHOD</span>
+                <strong style="color:#FFFFFF;font-weight:700;" id="profilePaymentProvider">Free Onboarding</strong>
+              </div>
+            </div>
+
+            <!-- USAGE PROGRESS BARS -->
+            <div style="margin-top:18px;padding-top:14px;border-top:1px solid rgba(255,255,255,0.15);">
+              <div style="font-size:11px;font-weight:700;color:rgba(255,255,255,0.8);letter-spacing:0.5px;margin-bottom:12px;">USAGE LIMITS & PROGRESS</div>
+              
+              <div class="usage-item" style="margin-bottom:10px;">
+                <div style="display:flex;justify-content:space-between;font-size:11.5px;margin-bottom:4px;">
+                  <span style="color:rgba(255,255,255,0.85);">Datasets</span>
+                  <span style="font-weight:700;" id="datasetUsageText">1 / 1</span>
+                </div>
+                <div class="usage-progress-bar"><div class="usage-bar-fill" id="datasetUsageFill" style="width:100%;"></div></div>
+              </div>
+
+              <div class="usage-item" style="margin-bottom:10px;">
+                <div style="display:flex;justify-content:space-between;font-size:11.5px;margin-bottom:4px;">
+                  <span style="color:rgba(255,255,255,0.85);">AI Queries</span>
+                  <span style="font-weight:700;" id="aiUsageText">5 / 5</span>
+                </div>
+                <div class="usage-progress-bar"><div class="usage-bar-fill" id="aiUsageFill" style="width:100%;"></div></div>
+              </div>
+
+              <div class="usage-item" style="margin-bottom:10px;">
+                <div style="display:flex;justify-content:space-between;font-size:11.5px;margin-bottom:4px;">
+                  <span style="color:rgba(255,255,255,0.85);">Reports Generated</span>
+                  <span style="font-weight:700;" id="reportUsageText">1 / 1</span>
+                </div>
+                <div class="usage-progress-bar"><div class="usage-bar-fill" id="reportUsageFill" style="width:100%;"></div></div>
+              </div>
+
+              <div class="usage-item">
+                <div style="display:flex;justify-content:space-between;font-size:11.5px;margin-bottom:4px;">
+                  <span style="color:rgba(255,255,255,0.85);">ML Revenue Forecasts</span>
+                  <span style="font-weight:700;color:#FDE047;" id="forecastUsageText">🔒 Locked</span>
+                </div>
+                <div class="usage-progress-bar"><div class="usage-bar-fill" id="forecastUsageFill" style="width:0%;background:#FDE047;"></div></div>
+              </div>
+            </div>
+
+            <button class="btn" style="width:100%;margin-top:20px;background:#FFFFFF;color:#1E3A8A;font-weight:700;box-shadow:0 4px 12px rgba(0,0,0,0.1);" onclick="goTo('Plans & Pricing')">⚡ Upgrade to Pro & Unlock Unlimited</button>
+          </div>
+
+          <div class="ref2-card-list" style="margin-top:14px;">
+            <button class="ref2-list-item" onclick="goTo('Plans & Pricing')">
+              <div class="ref2-item-icon icon-bg-blue">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+              </div>
+              <div class="ref2-item-text">
+                <strong>View Plans & Pricing</strong>
+                <small>Explore Pro and Enterprise features</small>
+              </div>
+              <div class="ref2-chevron"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 18l6-6-6-6"/></svg></div>
+            </button>
+
+            <button class="ref2-list-item" onclick="goTo('Billing History')">
+              <div class="ref2-item-icon icon-bg-sky">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+              </div>
+              <div class="ref2-item-text">
+                <strong>Billing History & Receipts</strong>
+                <small>View past transactions and download invoices</small>
+              </div>
+              <div class="ref2-chevron"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 18l6-6-6-6"/></svg></div>
+            </button>
+          </div>
+        </section>
+
+        <!-- CAREER SNAPSHOT / METRICS CARDS -->
+        <section class="ref2-section">
+          <div class="ref2-section-header">
+            <div>
+              <span class="ref2-section-subtitle">YOUR PROGRESS</span>
+              <h2 class="ref2-section-title">Career snapshot</h2>
+            </div>
+          </div>
+
+          <div class="ref2-stats-grid">
+            <!-- Card 1: ATS Score -->
+            <button class="ref2-stat-card" onclick="goTo('ATS Result')">
+              <div class="ref2-stat-icon-wrap icon-blue">
+                <svg viewBox="0 0 24 24" class="ref2-stat-svg" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+              </div>
+              <div class="ref2-stat-val">82</div>
+              <div class="ref2-stat-label">ATS Score</div>
+              <div class="ref2-stat-badge">Strong match ↗</div>
+            </button>
+
+            <!-- Card 2: Job Matches -->
+            <button class="ref2-stat-card" onclick="goTo('Job Matches')">
+              <div class="ref2-stat-icon-wrap icon-sky">
+                <svg viewBox="0 0 24 24" class="ref2-stat-svg" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16"/></svg>
+              </div>
+              <div class="ref2-stat-val">6</div>
+              <div class="ref2-stat-label">Job Matches</div>
+              <div class="ref2-stat-badge">Explore roles ↗</div>
+            </button>
+
+            <!-- Card 3: Resumes Analyzed -->
+            <button class="ref2-stat-card" onclick="goTo('History')">
+              <div class="ref2-stat-icon-wrap icon-cyan">
+                <svg viewBox="0 0 24 24" class="ref2-stat-svg" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6"/><path d="M16 13H8"/><path d="M16 17H8"/><path d="M10 9H8"/></svg>
+              </div>
+              <div class="ref2-stat-val">3</div>
+              <div class="ref2-stat-label">Resumes Analyzed</div>
+              <div class="ref2-stat-badge">View history ↗</div>
+            </button>
+          </div>
+        </section>
+
+        <!-- PROFILE ACTIONS SECTION -->
+        <section class="ref2-section">
+          <div class="ref2-section-header">
+            <div>
+              <span class="ref2-section-subtitle">KEEP MOVING</span>
+              <h2 class="ref2-section-title">Profile actions</h2>
+            </div>
+          </div>
+
+          <div class="ref2-card-list">
+            <button class="ref2-list-item" onclick="goTo('Personal Details')">
+              <div class="ref2-item-icon icon-bg-blue">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+              </div>
+              <div class="ref2-item-text">
+                <strong>Personal details</strong>
+                <small>Update your career information</small>
+              </div>
+              <div class="ref2-chevron">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+              </div>
+            </button>
+
+            <button class="ref2-list-item" onclick="goTo('Job Matches')">
+              <div class="ref2-item-icon icon-bg-sky">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+              </div>
+              <div class="ref2-item-text">
+                <strong>View job matches</strong>
+                <small>Explore roles aligned to your resume</small>
+              </div>
+              <div class="ref2-chevron">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+              </div>
+            </button>
+          </div>
+        </section>
+
+        <!-- SETTINGS SECTION -->
+        <section class="ref2-section">
+          <div class="ref2-section-header">
+            <div>
+              <span class="ref2-section-subtitle">ACCOUNT & SUPPORT</span>
+              <h2 class="ref2-section-title">Settings</h2>
+            </div>
+          </div>
+
+          <div class="ref2-card-list">
+            <button class="ref2-list-item" onclick="goTo('Notifications')">
+              <div class="ref2-item-icon icon-bg-light">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
+              </div>
+              <div class="ref2-item-text">
+                <strong>Notifications</strong>
+              </div>
+              <div class="ref2-chevron">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+              </div>
+            </button>
+
+            <button class="ref2-list-item" onclick="goTo('Privacy')">
+              <div class="ref2-item-icon icon-bg-light">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+              </div>
+              <div class="ref2-item-text">
+                <strong>Privacy</strong>
+              </div>
+              <div class="ref2-chevron">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+              </div>
+            </button>
+
+            <button class="ref2-list-item" onclick="goTo('Help Center')">
+              <div class="ref2-item-icon icon-bg-light">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+              </div>
+              <div class="ref2-item-text">
+                <strong>Help center</strong>
+              </div>
+              <div class="ref2-chevron">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+              </div>
+            </button>
+
+            <button class="ref2-list-item" onclick="goTo('About Radius Resume')">
+              <div class="ref2-item-icon icon-bg-light">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+              </div>
+              <div class="ref2-item-text">
+                <strong>About Radius Resume</strong>
+              </div>
+              <div class="ref2-chevron">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+              </div>
+            </button>
+
+            <button class="ref2-list-item" onclick="goTo('About MeleteNova')">
+              <div class="ref2-item-icon icon-bg-light">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+              </div>
+              <div class="ref2-item-text">
+                <strong>About MeleteNova Solutions</strong>
+              </div>
+              <div class="ref2-chevron">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+              </div>
+            </button>
+          </div>
+        </section>
+
+        <!-- LOG OUT BUTTON -->
+        <button class="ref2-logout-btn" onclick="goTo('Logout Confirmation')">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+          Log out
+        </button>
+
+      </div>
+    </div>
+
+    <!-- BOTTOM NAVIGATION -->
+    <div class="bottomnav">
+      <div class="navicon" data-target="Home" onclick="navTap(this,'Home')">
+        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        <span class="nav-label">Home</span>
+      </div>
+      <div class="navicon" data-target="Upload" onclick="navTap(this,'Upload')">
+        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><polyline points="9 15 12 12 15 15"/></svg>
+        <span class="nav-label">Upload</span>
+      </div>
+      <div class="navicon" data-target="History" onclick="navTap(this,'History')">
+        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        <span class="nav-label">History</span>
+      </div>
+      <div class="navicon active" data-target="Profile" onclick="navTap(this,'Profile')">
+        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        <span class="nav-label">Profile</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ SCREEN: GOOGLE ACCOUNT ============ -->
+  <div class="screen" data-name="Google Account">
+    <div class="scroll">
+      <div class="statusbar"><span>9:41</span><span>status</span></div>
+      <div class="content-pad-noNav auth-panel">
+        <div class="auth-provider-mark google-mark" aria-label="Google"><svg viewBox="0 0 48 48" role="img" aria-hidden="true"><path fill="#4285F4" d="M24 9.5c3.54 0 6.73 1.22 9.23 3.6l6.85-6.85C35.9 2.42 30.47 0 24 0 14.61 0 6.51 5.38 2.56 13.22l7.98 6.2C12.45 13.14 17.8 9.5 24 9.5z"/><path fill="#34A853" d="M46.98 24.55c0-1.59-.14-3.12-.41-4.55H24v9.02h12.91c-.56 2.97-2.25 5.48-4.79 7.17l7.73 6c4.51-4.16 7.13-10.29 7.13-17.64z"/><path fill="#FBBC05" d="M10.54 28.58A14.38 14.38 0 0 1 9.5 24c0-1.59.36-3.13 1.04-4.58l-7.98-6.2A24 24 0 0 0 0 24c0 3.88.93 7.55 2.56 10.78l7.98-6.2z"/><path fill="#EA4335" d="M24 48c6.48 0 11.92-2.13 15.89-5.81l-7.73-6c-2.14 1.44-4.87 2.3-8.16 2.3-6.2 0-11.55-3.64-13.46-9.92l-7.98 6.2C6.51 42.62 14.61 48 24 48z"/></svg></div>
+        <div class="tappable auth-back" onclick="goBack()">Back</div>
+        <h1>Choose an account</h1>
+        <p class="auth-lead">Continue to Radius Resume with Google.</p>
+        <div class="account-list">
+          <button class="account-row" onclick="selectAuthAccount('Google', this)">
+            <span class="account-avatar account-avatar-purple">AR</span>
+            <span class="account-copy"><strong>Aditi Rao</strong><small>aditi.rao@gmail.com</small></span>
+            <span class="account-check">&#10003;</span>
+          </button>
+          <button class="account-row" onclick="selectAuthAccount('Google', this)">
+            <span class="account-avatar account-avatar-sky">MK</span>
+            <span class="account-copy"><strong>Meera Kapoor</strong><small>meera.kapoor@gmail.com</small></span>
+            <span class="account-check">&#10003;</span>
+          </button>
+        </div>
+        <div class="auth-footnote">You will continue to Radius Resume.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ SCREEN: LINKEDIN ACCOUNT ============ -->
+  <div class="screen" data-name="LinkedIn Account">
+    <div class="scroll">
+      <div class="statusbar"><span>9:41</span><span>status</span></div>
+      <div class="content-pad-noNav auth-panel">
+        <div class="auth-provider-mark linkedin-mark" aria-label="LinkedIn"><svg viewBox="0 0 48 48" role="img" aria-hidden="true"><rect width="48" height="48" rx="6" fill="#0A66C2"/><path fill="#fff" d="M12.2 19.6h5.1V36h-5.1V19.6zm2.55-8.15a2.96 2.96 0 1 1 0 5.92 2.96 2.96 0 0 1 0-5.92zM20.75 19.6h4.9v2.24h.07c.68-1.29 2.35-2.65 4.84-2.65 5.18 0 6.14 3.41 6.14 7.84V36h-5.1v-7.95c0-1.9-.03-4.35-2.65-4.35-2.66 0-3.07 2.08-3.07 4.21V36h-5.13V19.6z"/></svg></div>
+        <div class="tappable auth-back" onclick="goBack()">Back</div>
+        <h1>Select an account</h1>
+        <p class="auth-lead">Continue to Radius Resume with LinkedIn.</p>
+        <div class="account-list">
+          <button class="account-row" onclick="selectAuthAccount('LinkedIn', this)">
+            <span class="account-avatar account-avatar-coral">AR</span>
+            <span class="account-copy"><strong>Aditi Rao</strong><small>aditi.rao@linkedin.com</small></span>
+            <span class="account-check">&#10003;</span>
+          </button>
+          <button class="account-row" onclick="selectAuthAccount('LinkedIn', this)">
+            <span class="account-avatar account-avatar-lime">MK</span>
+            <span class="account-copy"><strong>Meera Kapoor</strong><small>meera.kapoor@linkedin.com</small></span>
+            <span class="account-check">&#10003;</span>
+          </button>
+        </div>
+        <div class="auth-footnote">Your account stays private to Radius Resume.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ SCREEN: AUTHENTICATION ============ -->
+  <div class="screen" data-name="Authentication">
+    <div class="auth-loading">
+      <div class="auth-loading-orbit"><span></span></div>
+      <div class="auth-loading-title">Connecting securely</div>
+      <div class="auth-loading-copy" id="authLoadingCopy">Preparing your Radius Resume account.</div>
+    </div>
+  </div>
+
+  <!-- ============ SCREEN: PERSONAL DETAILS ============ -->
+  <div class="screen" data-name="Personal Details">
+    <div class="scroll">
+      <div class="statusbar"><span>9:41</span><span>status</span></div>
+      <div class="content-pad-noNav settings-screen">
+        <div class="tappable back-link" onclick="goBack()">Back to profile</div>
+        <h1>Personal details</h1>
+        <p class="screen-lead">Keep your career profile up to date.</p>
+        <div class="form-stack">
+          <label>Full name<input class="input" id="profileInputName" type="text" value="Aditi Rao"></label>
+          <label>Email<input class="input" id="profileInputEmail" type="email" value="aditi.rao@email.com"></label>
+          <label>Phone<input class="input" id="profileInputPhone" type="tel" value="+91 98765 43210"></label>
+          <label>Location<input class="input" id="profileInputLocation" type="text" value="Bengaluru, India"></label>
+          <label>Professional role<input class="input" id="profileInputRole" type="text" value="Product Manager"></label>
+        </div>
+        <button class="btn btn-purple" style="width:100%;margin-top:24px;" onclick="savePersonalDetails()">Save changes</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ SCREEN: NOTIFICATIONS ============ -->
+  <div class="screen" data-name="Notifications">
+    <div class="scroll">
+      <div class="statusbar"><span>9:41</span><span>status</span></div>
+      <div class="content-pad-noNav settings-screen">
+        <div class="tappable back-link" onclick="goBack()">Back to profile</div>
+        <h1>Notifications</h1>
+        <p class="screen-lead">Choose what Radius Resume should keep you updated about.</p>
+        <div class="settings-group">
+          <div class="settings-row"><span><strong>Resume analysis updates</strong><small>Know when your results are ready.</small></span><input class="toggle" type="checkbox" checked></div>
+          <div class="settings-row"><span><strong>Application and career updates</strong><small>Useful moments for your job search.</small></span><input class="toggle" type="checkbox" checked></div>
+          <div class="settings-row"><span><strong>Recommendations</strong><small>Ideas to strengthen your resume.</small></span><input class="toggle" type="checkbox"></div>
+          <div class="settings-row"><span><strong>System notifications</strong><small>Important account and product notices.</small></span><input class="toggle" type="checkbox" checked></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ SCREEN: PRIVACY ============ -->
+  <div class="screen" data-name="Privacy">
+    <div class="scroll">
+      <div class="statusbar"><span>9:41</span><span>status</span></div>
+      <div class="content-pad-noNav settings-screen">
+        <div class="tappable back-link" onclick="goBack()">Back to profile</div>
+        <h1>Privacy</h1>
+        <p class="screen-lead">Control how your profile and resume data are handled.</p>
+        <div class="settings-group">
+          <div class="settings-row"><span><strong>Profile visibility</strong><small>Only you can view your profile.</small></span><span class="setting-value">Private</span></div>
+          <div class="settings-row"><span><strong>Resume data</strong><small>Manage the files you have uploaded.</small></span><span class="row-arrow">›</span></div>
+          <div class="settings-row"><span><strong>AI analysis data</strong><small>Used to create your resume insights.</small></span><span class="setting-value">On</span></div>
+          <div class="settings-row"><span><strong>Data usage</strong><small>Review how product data supports the experience.</small></span><span class="row-arrow">›</span></div>
+          <div class="settings-row"><span><strong>Privacy policy</strong><small>Read the Radius Resume policy.</small></span><span class="row-arrow">›</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ SCREEN: ABOUT RADIUS RESUME ============ -->
+  <div class="screen" data-name="About Radius Resume">
+    <div class="scroll">
+      <div class="statusbar"><span>9:41</span><span>status</span></div>
+      <div class="content-pad-noNav about-screen">
+        <div class="tappable back-link" onclick="goBack()">Back to profile</div>
+        <div class="about-mark">R</div>
+        <h1>Radius Resume</h1>
+        <p class="screen-lead">AI-powered resume analysis and career assistance.</p>
+        <div class="about-rule"></div>
+        <p class="about-copy">Radius Resume helps you understand how your resume reads to an ATS, and what to improve before you apply.</p>
+        <div class="about-version"><span>Version</span><strong>1.0</strong></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ SCREEN: ABOUT MELETENOVA ============ -->
+  <div class="screen" data-name="About MeleteNova">
+    <div class="scroll">
+      <div class="statusbar"><span>9:41</span><span>status</span></div>
+      <div class="content-pad-noNav about-screen company-screen">
+        <div class="tappable back-link" onclick="goBack()">Back to profile</div>
+        <div class="logo-mark company-mark"><img src="assets/official-logo.png" alt="MeleteNova logo"></div>
+        <h1>MeleteNova Solutions</h1>
+        <p class="screen-lead">Built for brains that build.</p>
+        <div class="about-rule"></div>
+        <p class="about-copy">MeleteNova Solutions presents Radius Resume, a focused tool for understanding and improving your resume.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ SCREEN: HELP CENTER ============ -->
+  <div class="screen" data-name="Help Center">
+    <div class="scroll">
+      <div class="statusbar"><span>9:41</span><span>status</span></div>
+      <div class="content-pad-noNav settings-screen help-screen">
+        <div class="tappable back-link" onclick="goBack()">Back to profile</div>
+        <h1>Help center</h1>
+        <p class="screen-lead">Answers for your next step.</p>
+        <div class="help-list">
+          <button class="help-item" onclick="toggleHelp(this)"><span>How does Resume Analysis work?</span><b>+</b><small>We review structure, formatting, keywords and clarity to surface practical improvements.</small></button>
+          <button class="help-item" onclick="toggleHelp(this)"><span>How is my ATS score calculated?</span><b>+</b><small>Your score reflects how well the resume content and structure match common ATS signals.</small></button>
+          <button class="help-item" onclick="toggleHelp(this)"><span>How do I upload a resume?</span><b>+</b><small>Open Upload, tap the upload area, then wait for the file to finish processing.</small></button>
+          <button class="help-item" onclick="toggleHelp(this)"><span>How do I view my history?</span><b>+</b><small>Use History in the bottom navigation to revisit your resume analyses.</small></button>
+          <button class="help-item" onclick="toggleHelp(this)"><span>Account and Login</span><b>+</b><small>Use email, Google or LinkedIn to access your Radius Resume account.</small></button>
+          <button class="help-item" onclick="toggleHelp(this)"><span>Contact support</span><b>+</b><small>We are preparing a support channel for the next release.</small></button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ SCREEN: LOGOUT CONFIRMATION ============ -->
+  <div class="screen" data-name="Logout Confirmation">
+    <div class="logout-surface">
+      <div class="logout-panel">
+        <div class="logout-mark">↗</div>
+        <h1>Log out?</h1>
+        <p>Are you sure you want to log out?</p>
+        <div class="logout-actions"><button class="btn btn-ghost" onclick="goTo('Profile')">Cancel</button><button class="btn btn-primary" onclick="goTo('Login')">Log out</button></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ SCREEN: JOB MATCHES ============ -->
+  <div class="screen" data-name="Job Matches">
+    <div class="scroll">
+      <div class="statusbar"><span>9:41</span><span>status</span></div>
+      <div class="content-pad-noNav job-screen">
+        <div class="tappable back-link" onclick="goBack()">Back to home</div>
+        <div class="job-heading-row"><div><h1>Job Matches</h1><p class="screen-lead">Jobs that match your skills, experience and resume.</p></div><div class="job-heading-actions"><button class="job-filter-button" onclick="toggleJobFilter()">Filter</button><div class="job-count">6<br><small>matches</small></div></div></div>
+        <div class="job-tools">
+          <label class="job-search"><span>⌕</span><input placeholder="Search roles or companies" oninput="filterJobs(this.value)"></label>
+        </div>
+        <div class="job-list" id="jobList">
+          <button class="job-item" data-work-type="Remote" data-search="UX/UI Designer Northstar Labs Remote Designer" onclick="selectJob('ux')"><span class="job-icon job-icon-purple">UX</span><span class="job-copy"><strong>UX/UI Designer</strong><small>Northstar Labs</small><small>Remote · Full-time · 2–4 years</small></span><span class="job-match">92%<small>Match</small></span></button>
+          <button class="job-item" data-work-type="Hybrid" data-search="Product Designer Fieldnote Hybrid Designer" onclick="selectJob('product')"><span class="job-icon job-icon-sky">PD</span><span class="job-copy"><strong>Product Designer</strong><small>Fieldnote</small><small>Hybrid · Full-time · 1–3 years</small></span><span class="job-match">86%<small>Match</small></span></button>
+          <button class="job-item" data-work-type="Remote" data-search="Service Designer Brightwell Remote Designer" onclick="selectJob('service')"><span class="job-icon job-icon-coral">SD</span><span class="job-copy"><strong>Service Designer</strong><small>Brightwell</small><small>Remote · Full-time · 3–5 years</small></span><span class="job-match">81%<small>Match</small></span></button>
+        </div>
+        <div class="job-empty" id="jobEmpty">No matching roles yet.</div>
+      </div>
+    </div>
+    <div class="job-filter-backdrop" id="jobFilterBackdrop" onclick="toggleJobFilter()"></div>
+    <div class="job-filter-sheet" id="jobFilterSheet" role="dialog" aria-labelledby="jobFilterTitle">
+      <div class="job-filter-handle"></div><h2 id="jobFilterTitle">Filter by work type</h2>
+      <label><input type="radio" name="workType" value="Remote">Remote</label>
+      <label><input type="radio" name="workType" value="Hybrid">Hybrid</label>
+      <label><input type="radio" name="workType" value="On-site">On-site</label>
+      <button class="btn btn-purple" onclick="applyJobFilter()">Apply</button>
+    </div>
+  </div>
+
+  <!-- ============ SCREEN: JOB DETAILS ============ -->
+  <div class="screen" data-name="Job Details">
+    <div class="scroll">
+      <div class="statusbar"><span>9:41</span><span>status</span></div>
+      <div class="content-pad-noNav job-detail-screen">
+        <div class="tappable back-link" onclick="goBack()">Back to matches</div>
+        <div class="job-detail-hero"><span class="job-icon job-icon-purple" id="detailIcon">UX</span><span class="detail-match"><strong id="detailMatch">92%</strong><small>your match</small></span></div>
+        <h1 id="detailTitle">UX/UI Designer</h1>
+        <p class="detail-company" id="detailCompany">Northstar Labs</p>
+        <div class="detail-meta"><span id="detailLocation">Remote</span><span id="detailType">Full-time</span><span id="detailExperience">2–4 years</span></div>
+        <section class="job-section"><h2>About the company</h2><p id="detailCompanyAbout">Northstar Labs builds thoughtful digital tools for modern teams.</p></section>
+        <section class="job-section"><h2>About the role</h2><p id="detailRole">You will shape clear, useful product experiences from early ideas through polished delivery, working closely with product and engineering.</p></section>
+        <section class="job-section"><h2>Role requirements</h2><div class="requirement-tags" id="detailSkills"><span>Figma</span><span>UX Research</span><span>Prototyping</span><span>Design systems</span></div><div class="requirement-lines"><p><strong>Experience</strong><span id="detailRequiredExperience">2+ years</span></p><p><strong>Education</strong><span>Relevant degree or equivalent experience</span></p><p><strong>Other requirements</strong><span>Strong communication and portfolio</span></p></div></section>
+        <section class="job-section match-section"><h2>Your match</h2><div class="match-summary"><strong id="matchSummaryScore">92%</strong><span><b>Strong match</b><small>Based on your existing resume analysis.</small></span></div><div class="match-breakdown"><span>Matched skills <b>7</b></span><span>Missing skills <b>1</b></span><span>Experience match <b>Yes</b></span></div></section>
+      </div>
+    </div>
+    <div class="job-cta"><button class="btn btn-purple" onclick="goTo('Application Preparation')">Apply now</button></div>
+  </div>
+
+  <!-- ============ SCREEN: APPLICATION PREPARATION ============ -->
+  <div class="screen" data-name="Application Preparation">
+    <div class="scroll"><div class="statusbar"><span>9:41</span><span>status</span></div><div class="content-pad-noNav application-screen"><div class="tappable back-link" onclick="goBack()">Back to job</div><h1>Prepare your application</h1><p class="screen-lead">Apply for <strong id="applyJobTitle">UX/UI Designer</strong>. Your resume will be used for this application.</p><div class="selected-resume"><div class="resume-file">PDF</div><div><strong>Resume_Aditi_v3.pdf</strong><small>Updated 2 days ago · ATS match 82</small></div><span class="resume-check">✓</span></div><button class="btn btn-purple" style="width:100%;margin-top:20px;" onclick="goTo('Application Requirements')">Use this resume</button><button class="btn btn-ghost" style="width:100%;margin-top:12px;" onclick="startApplicationUpload()">Upload another resume</button><div class="application-note">You can review all requirements before anything is submitted.</div></div></div>
+  </div>
+
+  <!-- ============ SCREEN: APPLICATION REQUIREMENTS ============ -->
+  <div class="screen" data-name="Application Requirements">
+    <div class="scroll"><div class="statusbar"><span>9:41</span><span>status</span></div><div class="content-pad-noNav application-screen"><div class="tappable back-link" onclick="goBack()">Back to resume</div><h1>Application requirements</h1><p class="screen-lead">A quick check before you review the application.</p><div class="requirements-list"><div class="application-check is-complete"><span>✓</span><div><strong>Resume</strong><small>Uploaded and ready</small></div></div><div class="application-check is-complete"><span>✓</span><div><strong>Required experience</strong><small>Meets the 2+ year requirement</small></div></div><div class="application-check is-complete"><span>✓</span><div><strong>Required skills</strong><small>7 of 8 skills matched</small></div></div><div class="application-check is-complete"><span>✓</span><div><strong>Location</strong><small>Eligible for remote work</small></div></div><div class="application-check"><span>○</span><div><strong>Additional information</strong><small>No additional information required</small></div></div></div><button class="btn btn-purple" style="width:100%;margin-top:28px;" onclick="goTo('Review Application')">Review application</button></div></div>
+  </div>
+
+  <!-- ============ SCREEN: REVIEW APPLICATION ============ -->
+  <div class="screen" data-name="Review Application">
+    <div class="scroll"><div class="statusbar"><span>9:41</span><span>status</span></div><div class="content-pad-noNav application-screen"><div class="tappable back-link" onclick="goBack()">Back to requirements</div><h1>Review application</h1><p class="screen-lead">Everything looks ready to send.</p><div class="review-list"><div><span>Job</span><strong id="reviewJobTitle">UX/UI Designer</strong></div><div><span>Company</span><strong id="reviewCompany">Northstar Labs</strong></div><div><span>Resume</span><strong>Resume_Aditi_v3.pdf</strong></div><div><span>Match</span><strong class="review-match" id="reviewMatch">92%</strong></div></div><button class="btn btn-purple" style="width:100%;margin-top:28px;" onclick="submitApplication()">Submit application</button><button class="btn btn-ghost" style="width:100%;margin-top:12px;" onclick="goTo('Application Preparation')">Edit</button></div></div>
+  </div>
+
+  <!-- ============ SCREEN: APPLICATION CONFIRMATION ============ -->
+  <div class="screen" data-name="Application Confirmation">
+    <div class="confirmation-screen"><div class="success-mark">✓</div><h1>Application submitted</h1><p>Your application for <strong id="confirmationJobTitle">UX/UI Designer</strong> at <strong id="confirmationCompany">Northstar Labs</strong> has been submitted.</p><button class="btn btn-purple" style="width:100%;margin-top:28px;" onclick="toast('Application tracking')">View application</button><button class="btn btn-ghost" style="width:100%;margin-top:12px;" onclick="goTo('Job Matches')">Back to Job Matches</button></div>
+  </div>
+
+  <!-- ============ SCREEN: ABOUT ============ -->
+  <div class="screen" data-name="About">
+    <div class="scroll">
+      <div class="statusbar"><span>9:41</span><span>status</span></div>
+      <div class="content-pad-noNav" style="padding-top:24px;">
+        <div class="tappable back-link" onclick="goBack()">Back</div>
+        <div class="logo-mark" style="margin-top:20px;"><img src="assets/official-logo.png" alt="MeleteNova logo"></div>
+        <h1 style="font-size:24px;color:var(--navy);margin-top:16px;">Meletnova Resume</h1>
+        <p style="color:var(--ink-muted);font-size:14px;margin-top:10px;line-height:1.6;">Meletnova Resume helps you understand exactly how your resume reads to an ATS, and what to fix, before you apply.</p>
+        <p style="color:var(--ink-muted);font-size:13px;margin-top:16px;">Version 1.0 · By MeleteNova Solutions</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ SCREEN: PLANS & PRICING ============ -->
+  <div class="screen" data-name="Plans & Pricing">
+    <div class="scroll">
+      <div class="statusbar"><span>9:41</span><span>status</span></div>
+      <div class="content-pad-noNav" style="padding-top:24px;padding-bottom:100px;">
+        <div class="tappable back-link" onclick="goBack()">Back</div>
+        
+        <div style="text-align:center;margin-top:14px;">
+          <span style="background:var(--lavender);color:var(--purple);font-family:'Sora';font-weight:700;font-size:11px;padding:4px 12px;border-radius:999px;letter-spacing:0.5px;">PREMIUM SUBSCRIPTION</span>
+          <h1 style="font-size:26px;color:var(--navy);margin-top:10px;line-height:1.2;">Plans &amp; Pricing</h1>
+          <p style="color:var(--ink-muted);font-size:13.5px;margin-top:6px;line-height:1.5;">Unlock advanced dashboards, AI insights, ML forecasting, and professional reports.</p>
+        </div>
+
+        <!-- BILLING TOGGLE -->
+        <div class="pricing-toggle-wrap" style="margin-top:22px;display:flex;align-items:center;justify-content:center;gap:10px;background:#F1F5F9;padding:6px;border-radius:999px;max-width:280px;margin-left:auto;margin-right:auto;">
+          <button class="pricing-toggle-btn active" id="toggleMonthlyBtn" onclick="setBillingCycle('monthly')">Monthly</button>
+          <button class="pricing-toggle-btn" id="toggleYearlyBtn" onclick="setBillingCycle('yearly')">Yearly <span class="discount-pill">Save 17%</span></button>
+        </div>
+
+        <!-- PAYMENT PROVIDER SELECTOR -->
+        <div style="margin-top:18px;background:#FFFFFF;border:1px solid #E2E8F0;border-radius:18px;padding:12px;display:flex;align-items:center;justify-content:space-between;">
+          <div style="font-size:12px;font-weight:700;color:var(--navy);">Payment Method</div>
+          <div style="display:flex;gap:8px;">
+            <button class="provider-pill active" id="providerRazorpayBtn" onclick="setPaymentProvider('razorpay')">Razorpay (Cards/UPI)</button>
+            <button class="provider-pill" id="providerPhonepeBtn" onclick="setPaymentProvider('phonepe')">PhonePe (UPI)</button>
+          </div>
+        </div>
+
+        <!-- PRICING CARDS GRID -->
+        <div class="pricing-grid" style="margin-top:20px;display:flex;flex-direction:column;gap:18px;">
+          
+          <!-- FREE TRIAL CARD -->
+          <div class="card pricing-card" id="cardPlanFree" style="border:1px solid #E2E8F0;padding:22px;border-radius:24px;background:#FFFFFF;">
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+              <span style="font-family:'Sora';font-weight:800;font-size:18px;color:var(--navy);">Free Trial</span>
+              <span style="background:#F1F5F9;color:#64748B;font-size:11px;font-weight:700;padding:4px 10px;border-radius:999px;">Standard</span>
+            </div>
+            <div style="margin-top:14px;display:flex;align-items:baseline;gap:4px;">
+              <span style="font-family:'Sora';font-weight:800;font-size:32px;color:var(--navy);">₹0</span>
+              <span style="color:var(--ink-muted);font-size:13px;" class="cycle-text">/ month</span>
+            </div>
+            <p style="font-size:12.5px;color:var(--ink-muted);margin-top:4px;">Basic resume analysis &amp; dashboard preview.</p>
+            
+            <div style="margin-top:16px;padding-top:16px;border-top:1px solid #F1F5F9;display:flex;flex-direction:column;gap:9px;font-size:12.5px;color:var(--navy);">
+              <div style="display:flex;align-items:center;gap:8px;">✓ <span>1 Dataset Upload</span></div>
+              <div style="display:flex;align-items:center;gap:8px;">✓ <span>CSV File Support only</span></div>
+              <div style="display:flex;align-items:center;gap:8px;">✓ <span>50% Dashboard Preview</span></div>
+              <div style="display:flex;align-items:center;gap:8px;">✓ <span>Basic Overview KPI Metrics</span></div>
+              <div style="display:flex;align-items:center;gap:8px;">✓ <span>AI Summary Preview</span></div>
+              <div style="display:flex;align-items:center;gap:8px;color:#94A3B8;">🔒 <span>AI Chat History Locked</span></div>
+              <div style="display:flex;align-items:center;gap:8px;color:#94A3B8;">🔒 <span>ML Revenue Forecasting Locked</span></div>
+              <div style="display:flex;align-items:center;gap:8px;color:#94A3B8;">🔒 <span>High-Res PDF Downloads Locked</span></div>
+            </div>
+
+            <button class="btn btn-ghost" style="width:100%;margin-top:20px;border-color:#CBD5E1;font-weight:700;" id="btnPlanFree" onclick="selectPlan('free')">Current Plan</button>
+          </div>
+
+          <!-- PRO CARD (RECOMMENDED) -->
+          <div class="card pricing-card pro-card" id="cardPlanPro" style="border:2px solid #2563EB;padding:22px;border-radius:24px;background:#FFFFFF;position:relative;box-shadow:0 12px 32px -8px rgba(37,99,235,0.22);">
+            <div style="position:absolute;top:-12px;right:24px;background:#2563EB;color:#FFFFFF;font-family:'Sora';font-weight:800;font-size:10.5px;padding:3px 12px;border-radius:999px;letter-spacing:0.5px;box-shadow:0 4px 10px rgba(37,99,235,0.3);">RECOMMENDED</div>
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+              <span style="font-family:'Sora';font-weight:800;font-size:20px;color:var(--navy);">⭐ Pro Plan</span>
+            </div>
+            <div style="margin-top:14px;display:flex;align-items:baseline;gap:4px;">
+              <span style="font-family:'Sora';font-weight:800;font-size:36px;color:#2563EB;" id="proPriceDisplay">₹799</span>
+              <span style="color:var(--ink-muted);font-size:13px;" class="cycle-text">/ month</span>
+            </div>
+            <p style="font-size:12.5px;color:var(--ink-muted);margin-top:4px;">Complete AI insights, ML forecasting &amp; full reports.</p>
+            
+            <div style="margin-top:16px;padding-top:16px;border-top:1px solid #EFF6FF;display:flex;flex-direction:column;gap:9.5px;font-size:12.5px;color:var(--navy);">
+              <div style="display:flex;align-items:center;gap:8px;"><b>✓</b> <strong style="color:#2563EB;">Up to 3 Datasets &amp; Files</strong></div>
+              <div style="display:flex;align-items:center;gap:8px;"><b>✓</b> <span>CSV + Excel (.xlsx) Support</span></div>
+              <div style="display:flex;align-items:center;gap:8px;"><b>✓</b> <span>100% Full Unlocked Dashboard</span></div>
+              <div style="display:flex;align-items:center;gap:8px;"><b>✓</b> <span>Full KPI Metrics &amp; P&amp;L Analysis</span></div>
+              <div style="display:flex;align-items:center;gap:8px;"><b>✓</b> <span>1-Month XGBoost ML Revenue Forecast</span></div>
+              <div style="display:flex;align-items:center;gap:8px;"><b>✓</b> <span>Full AI Summary &amp; Assistant</span></div>
+              <div style="display:flex;align-items:center;gap:8px;"><b>✓</b> <span>AI Chatbot &amp; History Unlocked</span></div>
+              <div style="display:flex;align-items:center;gap:8px;"><b>✓</b> <span>High-Resolution PDF Downloads</span></div>
+              <div style="display:flex;align-items:center;gap:8px;"><b>✓</b> <span>Priority Customer Support</span></div>
+            </div>
+
+            <button class="btn btn-primary" style="width:100%;margin-top:22px;background:#2563EB;box-shadow:0 8px 20px rgba(37,99,235,0.3);font-size:15px;font-weight:700;" onclick="initiateUpgrade('pro')">Upgrade to Pro ⚡</button>
+          </div>
+
+          <!-- ENTERPRISE CARD -->
+          <div class="card pricing-card" id="cardPlanEnterprise" style="border:1px solid #CBD5E1;padding:22px;border-radius:24px;background:#F8FAFC;">
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+              <span style="font-family:'Sora';font-weight:800;font-size:18px;color:var(--navy);">🏢 Enterprise</span>
+              <span style="background:#E2E8F0;color:var(--navy);font-size:11px;font-weight:700;padding:4px 10px;border-radius:999px;">Custom</span>
+            </div>
+            <div style="margin-top:14px;display:flex;align-items:baseline;gap:4px;">
+              <span style="font-family:'Sora';font-weight:800;font-size:32px;color:var(--navy);" id="enterprisePriceDisplay">₹2,499</span>
+              <span style="color:var(--ink-muted);font-size:13px;" class="cycle-text">/ month</span>
+            </div>
+            <p style="font-size:12.5px;color:var(--ink-muted);margin-top:4px;">Unlimited analytics, ensemble ML &amp; custom data filters.</p>
+            
+            <div style="margin-top:16px;padding-top:16px;border-top:1px solid #E2E8F0;display:flex;flex-direction:column;gap:9px;font-size:12.5px;color:var(--navy);">
+              <div style="display:flex;align-items:center;gap:8px;"><b>✓</b> <strong>Unlimited Datasets &amp; Files</strong></div>
+              <div style="display:flex;align-items:center;gap:8px;"><b>✓</b> <span>CSV, Excel, PDF Tables &amp; JSON</span></div>
+              <div style="display:flex;align-items:center;gap:8px;"><b>✓</b> <span>Advanced Interactive Dashboard + Custom Filters</span></div>
+              <div style="display:flex;align-items:center;gap:8px;"><b>✓</b> <span>Ensemble ML Forecasting (XGBoost + LightGBM)</span></div>
+              <div style="display:flex;align-items:center;gap:8px;"><b>✓</b> <span>AI Executive Briefing Report</span></div>
+              <div style="display:flex;align-items:center;gap:8px;"><b>✓</b> <span>Dedicated 24/7 Account Support</span></div>
+            </div>
+
+            <button class="btn btn-purple" style="width:100%;margin-top:20px;font-weight:700;" onclick="initiateUpgrade('enterprise')">Contact Sales / Get Started</button>
+          </div>
+        </div>
+
+        <!-- FEATURE COMPARISON ACCORDION -->
+        <div style="margin-top:28px;">
+          <div style="font-family:'Sora';font-weight:700;font-size:17px;color:var(--navy);margin-bottom:12px;">Feature Comparison Matrix</div>
+          <div class="card" style="padding:16px;border-radius:20px;">
+            <div class="comp-row"><span>Datasets allowed</span><strong>Free: 1 | Pro: 3 | Ent: Unlimited</strong></div>
+            <div class="comp-row"><span>File formats</span><strong>Free: CSV | Pro: CSV, XLSX | Ent: All</strong></div>
+            <div class="comp-row"><span>ML Revenue Forecast</span><strong>Free: 🔒 | Pro: XGBoost | Ent: Ensemble</strong></div>
+            <div class="comp-row"><span>AI Chatbot History</span><strong>Free: 🔒 | Pro: Unlocked | Ent: Unlocked</strong></div>
+            <div class="comp-row"><span>PDF Downloads</span><strong>Free: 🔒 | Pro: High-Res | Ent: Custom</strong></div>
+          </div>
+        </div>
+
+        <!-- FREQUENTLY ASKED QUESTIONS -->
+        <div style="margin-top:26px;">
+          <div style="font-family:'Sora';font-weight:700;font-size:17px;color:var(--navy);margin-bottom:12px;">Frequently Asked Questions</div>
+          <div class="help-list">
+            <button class="help-item" onclick="toggleHelp(this)"><span>How does the 17% annual discount work?</span><b>+</b><small>When you select Yearly billing, you get 12 months of access for the price of 10 months, saving 17%.</small></button>
+            <button class="help-item" onclick="toggleHelp(this)"><span>What payment methods are accepted in India?</span><b>+</b><small>We process payments securely via Razorpay and PhonePe, supporting UPI, GPay, Credit/Debit cards, and Netbanking.</small></button>
+            <button class="help-item" onclick="toggleHelp(this)"><span>Can I upgrade or downgrade anytime?</span><b>+</b><small>Yes! You can upgrade your plan or change billing cycles at any time from your Profile.</small></button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ SCREEN: BILLING HISTORY ============ -->
+  <div class="screen" data-name="Billing History">
+    <div class="scroll">
+      <div class="statusbar"><span>9:41</span><span>status</span></div>
+      <div class="content-pad-noNav" style="padding-top:24px;padding-bottom:100px;">
+        <div class="tappable back-link" onclick="goBack()">Back to profile</div>
+        
+        <h1 style="font-size:24px;color:var(--navy);margin-top:14px;">Billing History</h1>
+        <p style="color:var(--ink-muted);font-size:13.5px;margin-top:4px;">Past payments, receipts, and invoice records.</p>
+
+        <div style="margin-top:20px;" id="billingHistoryList">
+          <!-- Rendered dynamically by script.js -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ SCREEN: PAYMENT CONFIRMATION ============ -->
+  <div class="screen" data-name="Payment Confirmation">
+    <div class="confirmation-screen" style="padding:40px 24px;text-align:center;">
+      <div class="success-mark" style="background:#2563EB;color:#FFFFFF;box-shadow:0 10px 24px rgba(37,99,235,0.3);">🎉</div>
+      <h1 style="font-size:24px;color:var(--navy);margin-top:18px;">Welcome to Pro!</h1>
+      <p style="color:var(--ink-muted);font-size:14px;margin-top:6px;">Your subscription has been verified and activated.</p>
+
+      <div class="card" style="margin-top:24px;text-align:left;padding:18px;background:#F8FAFC;border:1px solid #E2E8F0;border-radius:20px;font-size:13px;display:flex;flex-direction:column;gap:10px;">
+        <div style="display:flex;justify-content:space-between;"><span style="color:var(--ink-muted);">Plan</span><strong style="color:var(--navy);" id="confirmPlanName">Pro Plan</strong></div>
+        <div style="display:flex;justify-content:space-between;"><span style="color:var(--ink-muted);">Amount Paid</span><strong style="color:#2563EB;" id="confirmAmountPaid">₹799</strong></div>
+        <div style="display:flex;justify-content:space-between;"><span style="color:var(--ink-muted);">Billing Cycle</span><strong style="color:var(--navy);" id="confirmBillingCycle">Monthly</strong></div>
+        <div style="display:flex;justify-content:space-between;"><span style="color:var(--ink-muted);">Transaction ID</span><strong style="color:var(--navy);font-family:monospace;font-size:11.5px;" id="confirmTxnId">TXN_98712365</strong></div>
+        <div style="display:flex;justify-content:space-between;"><span style="color:var(--ink-muted);">Next Renewal</span><strong style="color:var(--navy);" id="confirmRenewalDate">Oct 27, 2026</strong></div>
+      </div>
+
+      <button class="btn btn-primary" style="width:100%;margin-top:24px;background:#2563EB;box-shadow:0 8px 20px rgba(37,99,235,0.25);" onclick="goTo('Home')">Go to Dashboard</button>
+      <button class="btn btn-ghost" style="width:100%;margin-top:12px;" onclick="goTo('Profile')">View Subscription Details</button>
+    </div>
+  </div>
+
+  <!-- ============ FIRST LOGIN PREMIUM ONBOARDING MODAL ============ -->
+  <div class="premium-modal-backdrop" id="premiumOnboardingModal" style="display:none;">
+    <div class="premium-modal-card">
+      <button class="modal-close-btn" onclick="closeOnboardingModal()">✕</button>
+      
+      <div style="text-align:center;">
+        <div style="width:52px;height:52px;border-radius:18px;background:linear-gradient(135deg, #1E3A8A 0%, #2563EB 100%);color:#FFFFFF;display:flex;align-items:center;justify-content:center;font-size:24px;margin:0 auto 12px;box-shadow:0 8px 20px rgba(37,99,235,0.3);">⚡</div>
+        <h2 style="font-family:'Sora';font-weight:800;font-size:20px;color:var(--navy);line-height:1.25;">Unlock the full power of your data.</h2>
+        <p style="font-size:12.5px;color:var(--ink-muted);margin-top:6px;line-height:1.45;">Upgrade to access advanced dashboards, AI-powered insights, ML forecasting and professional reports.</p>
+      </div>
+
+      <div style="margin-top:16px;display:flex;flex-direction:column;gap:10px;">
+        <div style="border:2px solid #2563EB;border-radius:18px;padding:14px;background:#F8FAFF;display:flex;align-items:center;justify-content:space-between;">
+          <div>
+            <div style="display:flex;align-items:center;gap:6px;">
+              <strong style="font-family:'Sora';font-size:14px;color:var(--navy);">⭐ Pro Plan</strong>
+              <span style="background:#2563EB;color:#FFFFFF;font-size:9.5px;font-weight:800;padding:2px 8px;border-radius:999px;">RECOMMENDED</span>
+            </div>
+            <div style="font-size:11.5px;color:var(--ink-muted);margin-top:2px;">Full AI summary, ML forecasting &amp; PDF reports</div>
+          </div>
+          <div style="font-family:'Sora';font-weight:800;font-size:16px;color:#2563EB;">₹799<small style="font-size:10px;color:var(--ink-muted);">/mo</small></div>
+        </div>
+
+        <div style="border:1px solid #E2E8F0;border-radius:18px;padding:12px;display:flex;align-items:center;justify-content:space-between;background:#FFFFFF;">
+          <div>
+            <strong style="font-family:'Sora';font-size:13.5px;color:var(--navy);">Free Trial</strong>
+            <div style="font-size:11px;color:var(--ink-muted);">1 dataset, 50% preview &amp; basic KPIs</div>
+          </div>
+          <div style="font-family:'Sora';font-weight:800;font-size:15px;color:var(--navy);">₹0</div>
+        </div>
+      </div>
+
+      <button class="btn btn-primary" style="width:100%;margin-top:18px;background:#2563EB;box-shadow:0 8px 20px rgba(37,99,235,0.28);font-weight:700;" onclick="selectOnboardingPlan('pro')">Upgrade to Pro ⚡</button>
+      <button class="btn btn-ghost" style="width:100%;margin-top:8px;font-size:13px;color:var(--ink-muted);" onclick="closeOnboardingModal()">Continue with Free Trial</button>
+    </div>
+  </div>
+
+  <!-- ============ PAYMENT CHECKOUT MODAL ============ -->
+  <div class="premium-modal-backdrop" id="checkoutModal" style="display:none;">
+    <div class="premium-modal-card">
+      <button class="modal-close-btn" onclick="closeCheckoutModal()">✕</button>
+      
+      <div style="text-align:center;">
+        <span style="background:var(--lavender);color:var(--purple);font-family:'Sora';font-weight:700;font-size:10.5px;padding:3px 10px;border-radius:999px;">SECURE CHECKOUT</span>
+        <h2 style="font-family:'Sora';font-weight:800;font-size:20px;color:var(--navy);margin-top:8px;" id="checkoutPlanTitle">Upgrade to Pro</h2>
+      </div>
+
+      <div style="margin-top:16px;background:#F8FAFC;border:1px solid #E2E8F0;border-radius:16px;padding:14px;font-size:13px;">
+        <div style="display:flex;justify-content:space-between;margin-bottom:8px;">
+          <span style="color:var(--ink-muted);">Plan Selected</span>
+          <strong style="color:var(--navy);" id="checkoutSelectedPlan">Pro Plan</strong>
+        </div>
+        <div style="display:flex;justify-content:space-between;margin-bottom:8px;">
+          <span style="color:var(--ink-muted);">Billing Cycle</span>
+          <strong style="color:var(--navy);" id="checkoutSelectedCycle">Monthly</strong>
+        </div>
+        <div style="display:flex;justify-content:space-between;padding-top:8px;border-top:1px solid #E2E8F0;">
+          <span style="font-weight:700;color:var(--navy);">Total Amount</span>
+          <strong style="font-family:'Sora';font-size:18px;color:#2563EB;" id="checkoutTotalAmount">₹799</strong>
+        </div>
+      </div>
+
+      <div style="margin-top:14px;">
+        <label style="font-size:11.5px;font-weight:700;color:var(--navy);display:block;margin-bottom:6px;">SELECT PAYMENT GATEWAY</label>
+        <div style="display:flex;gap:8px;">
+          <button class="provider-choice active" id="choiceRazorpay" onclick="setCheckoutProvider('razorpay')">Razorpay (Cards/UPI)</button>
+          <button class="provider-choice" id="choicePhonepe" onclick="setCheckoutProvider('phonepe')">PhonePe (UPI/QR)</button>
+        </div>
+      </div>
+
+      <button class="btn btn-primary" id="startPaymentBtn" style="width:100%;margin-top:20px;background:#2563EB;box-shadow:0 8px 20px rgba(37,99,235,0.28);font-weight:700;" onclick="executeCheckoutPayment()">Proceed to Payment 🔒</button>
+      <div style="text-align:center;font-size:11px;color:var(--ink-muted);margin-top:10px;">🔒 256-bit Encrypted Server Payment Verification</div>
+    </div>
+  </div>
+
+  <!-- toast -->
+  <div id="toast"></div>
+</div>
+</main>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
