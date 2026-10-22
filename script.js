@@ -821,7 +821,15 @@ function selectPlan(planId){
   initiateUpgrade(planId);
 }
 
-// Checkout & Razorpay/PhonePe Payment Flow
+// ========================================================
+// Razorpay UPI QR Code & Checkout Payment System
+// ========================================================
+let currentQrCodeId = null;
+let qrPollInterval = null;
+let qrTimerInterval = null;
+let qrCloseBySec = 0;
+let activeCheckoutTab = 'upi_qr';
+
 function initiateUpgrade(planId){
   if (planId === 'free') {
     toast('You are currently on the Free Trial');
@@ -836,37 +844,273 @@ function initiateUpgrade(planId){
   const amountEl = document.getElementById('checkoutTotalAmount');
   const modal = document.getElementById('checkoutModal');
 
+  // Reset Views
+  const mainView = document.getElementById('checkoutMainView');
+  const successView = document.getElementById('checkoutSuccessView');
+  if (mainView) mainView.style.display = 'block';
+  if (successView) successView.style.display = 'none';
+
   const price = plan.price[currentBillingCycle];
   if (titleEl) titleEl.textContent = `Upgrade to ${plan.name}`;
-  if (planNameEl) planNameEl.textContent = plan.name;
+  if (planNameEl) planNameEl.textContent = `${plan.name} Plan`;
   if (cycleEl) cycleEl.textContent = currentBillingCycle === 'yearly' ? 'Yearly (Save 17%)' : 'Monthly';
   if (amountEl) amountEl.textContent = `₹${price.toLocaleString()}`;
 
-  setCheckoutProvider(currentPaymentProvider);
   if (modal) modal.style.display = 'flex';
+
+  // Default to UPI QR tab and automatically generate QR
+  switchCheckoutTab('upi_qr');
 }
 
 function closeCheckoutModal(){
   const modal = document.getElementById('checkoutModal');
   if (modal) modal.style.display = 'none';
+  stopQrPolling();
+  stopQrTimer();
 }
 
-function setCheckoutProvider(provider){
-  currentPaymentProvider = provider;
-  const choiceRazorpay = document.getElementById('choiceRazorpay');
-  const choicePhonepe = document.getElementById('choicePhonepe');
-  if (choiceRazorpay) choiceRazorpay.classList.toggle('active', provider === 'razorpay');
-  if (choicePhonepe) choicePhonepe.classList.toggle('active', provider === 'phonepe');
+function switchCheckoutTab(tab){
+  activeCheckoutTab = tab;
+  const tabBtnUpiQr = document.getElementById('tabBtnUpiQr');
+  const tabBtnCards = document.getElementById('tabBtnCards');
+  const tabUpiQrView = document.getElementById('tabUpiQrView');
+  const tabCardsView = document.getElementById('tabCardsView');
+
+  if (tab === 'upi_qr') {
+    if (tabBtnUpiQr) tabBtnUpiQr.classList.add('active');
+    if (tabBtnCards) tabBtnCards.classList.remove('active');
+    if (tabUpiQrView) tabUpiQrView.style.display = 'block';
+    if (tabCardsView) tabCardsView.style.display = 'none';
+    generateAndDisplayQrCode();
+  } else {
+    if (tabBtnUpiQr) tabBtnUpiQr.classList.remove('active');
+    if (tabBtnCards) tabBtnCards.classList.add('active');
+    if (tabUpiQrView) tabUpiQrView.style.display = 'none';
+    if (tabCardsView) tabCardsView.style.display = 'block';
+    stopQrPolling();
+    stopQrTimer();
+  }
 }
 
-async function executeCheckoutPayment(){
+function stopQrPolling(){
+  if (qrPollInterval) {
+    clearInterval(qrPollInterval);
+    qrPollInterval = null;
+  }
+}
+
+function stopQrTimer(){
+  if (qrTimerInterval) {
+    clearInterval(qrTimerInterval);
+    qrTimerInterval = null;
+  }
+}
+
+// Generate UPI QR Code via Backend
+async function generateAndDisplayQrCode(){
+  stopQrPolling();
+  stopQrTimer();
+
+  const qrImg = document.getElementById('qrCodeImg');
+  const loadingOverlay = document.getElementById('qrLoadingOverlay');
+  const expiredOverlay = document.getElementById('qrExpiredOverlay');
+  const failedOverlay = document.getElementById('qrFailedOverlay');
+  const statusDot = document.getElementById('qrStatusDot');
+  const statusText = document.getElementById('qrStatusText');
+
+  // Set Loading UI state
+  if (qrImg) qrImg.style.display = 'none';
+  if (loadingOverlay) loadingOverlay.style.display = 'flex';
+  if (expiredOverlay) expiredOverlay.style.display = 'none';
+  if (failedOverlay) failedOverlay.style.display = 'none';
+  if (statusDot) {
+    statusDot.style.background = '#2563EB';
+    statusDot.style.animation = 'qrPulseDot 1.5s infinite';
+  }
+  if (statusText) statusText.textContent = 'Generating Razorpay UPI QR...';
+
+  try {
+    const response = await fetch('/api/razorpay/create-qr', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        planId: selectedCheckoutPlanId,
+        billingCycle: currentBillingCycle,
+        customerEmail: (getStoredProfile() && getStoredProfile().email) || 'user@meletnova.com'
+      })
+    });
+
+    const data = await response.json();
+    if (!data.success || !data.qr) {
+      throw new Error(data.error || 'Failed to generate QR code.');
+    }
+
+    const qr = data.qr;
+    currentQrCodeId = qr.id;
+    qrCloseBySec = qr.close_by || (Math.floor(Date.now() / 1000) + (15 * 60));
+
+    // Load QR Image
+    if (qrImg) {
+      qrImg.onload = () => {
+        if (loadingOverlay) loadingOverlay.style.display = 'none';
+        qrImg.style.display = 'block';
+      };
+      qrImg.src = qr.image_url;
+    }
+
+    if (statusText) statusText.textContent = 'Waiting for payment... (Scanning automatically)';
+
+    // Start Expiry Timer & Realtime Polling
+    startQrTimer(qrCloseBySec);
+    startQrPolling(currentQrCodeId);
+
+  } catch (err) {
+    console.error('[QR Error]', err);
+    if (loadingOverlay) loadingOverlay.style.display = 'none';
+    if (failedOverlay) {
+      failedOverlay.style.display = 'flex';
+      const msg = document.getElementById('qrFailedMessage');
+      if (msg) msg.textContent = err.message || 'Error generating QR';
+    }
+  }
+}
+
+function regenerateQrCode(){
+  generateAndDisplayQrCode();
+}
+
+// Start Expiry Countdown Timer
+function startQrTimer(closeBySec){
+  stopQrTimer();
+  const countdownEl = document.getElementById('qrCountdownText');
+
+  function updateTimer(){
+    const nowSec = Math.floor(Date.now() / 1000);
+    const diff = closeBySec - nowSec;
+
+    if (diff <= 0) {
+      stopQrTimer();
+      stopQrPolling();
+      if (countdownEl) countdownEl.textContent = '⏱ Expired';
+      const expiredOverlay = document.getElementById('qrExpiredOverlay');
+      if (expiredOverlay) expiredOverlay.style.display = 'flex';
+      const statusText = document.getElementById('qrStatusText');
+      if (statusText) statusText.textContent = 'QR Code Expired';
+      const statusDot = document.getElementById('qrStatusDot');
+      if (statusDot) {
+        statusDot.style.background = '#DC2626';
+        statusDot.style.animation = 'none';
+      }
+      return;
+    }
+
+    const mins = Math.floor(diff / 60);
+    const secs = diff % 60;
+    if (countdownEl) {
+      countdownEl.textContent = `⏱ Expires in ${mins}:${secs < 10 ? '0' : ''}${secs}`;
+    }
+  }
+
+  updateTimer();
+  qrTimerInterval = setInterval(updateTimer, 1000);
+}
+
+// Realtime Status Polling
+function startQrPolling(qrId){
+  stopQrPolling();
+
+  qrPollInterval = setInterval(async () => {
+    try {
+      const res = await fetch(`/api/razorpay/qr-status?id=${encodeURIComponent(qrId)}`);
+      const data = await res.json();
+
+      if (data.success) {
+        // Payment Succeeded!
+        if (data.status === 'paid' || data.status === 'credited') {
+          stopQrPolling();
+          stopQrTimer();
+          handlePaymentSuccess({
+            planId: data.planId || selectedCheckoutPlanId,
+            billingCycle: data.billingCycle || currentBillingCycle,
+            transactionId: data.payment_id || `TXN_QR_${Date.now()}`,
+            paymentProvider: 'Razorpay UPI QR',
+            subscription: data.subscription
+          });
+          return;
+        }
+
+        // Expired
+        if (data.status === 'expired') {
+          stopQrPolling();
+          stopQrTimer();
+          const expiredOverlay = document.getElementById('qrExpiredOverlay');
+          if (expiredOverlay) expiredOverlay.style.display = 'flex';
+          return;
+        }
+
+        // Failed
+        if (data.status === 'failed') {
+          stopQrPolling();
+          stopQrTimer();
+          const failedOverlay = document.getElementById('qrFailedOverlay');
+          if (failedOverlay) failedOverlay.style.display = 'flex';
+          return;
+        }
+      }
+    } catch (e) {
+      console.warn('[QR Poll] Fetch warning:', e);
+    }
+  }, 2500);
+}
+
+// Developer Simulation Button in Test Mode
+async function simulateTestQrPayment(){
+  if (!currentQrCodeId) {
+    toast('Please wait for QR code to generate.');
+    return;
+  }
+  toast('Simulating UPI QR scan & payment...');
+  try {
+    const res = await fetch('/api/razorpay/mock-qr-credit', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        qrId: currentQrCodeId,
+        planId: selectedCheckoutPlanId,
+        billingCycle: currentBillingCycle
+      })
+    });
+    const data = await res.json();
+    if (data.success) {
+      stopQrPolling();
+      stopQrTimer();
+      handlePaymentSuccess({
+        planId: selectedCheckoutPlanId,
+        billingCycle: currentBillingCycle,
+        transactionId: data.transactionId,
+        paymentProvider: 'Razorpay UPI QR (Test Mode)',
+        subscription: data.subscription
+      });
+    }
+  } catch (err) {
+    toast('Error simulating QR payment.');
+  }
+}
+
+// Fallback to Razorpay Checkout Popup
+function fallbackToCheckoutPopup(){
+  switchCheckoutTab('cards');
+}
+
+// Execute Razorpay Standard Checkout
+async function executeStandardCheckout(){
   const plan = SUBSCRIPTION_CONFIG.plans[selectedCheckoutPlanId] || SUBSCRIPTION_CONFIG.plans.pro;
   const price = plan.price[currentBillingCycle];
   const startBtn = document.getElementById('startPaymentBtn');
   
   if (startBtn) {
     startBtn.disabled = true;
-    startBtn.textContent = 'Processing Server Order...';
+    startBtn.textContent = 'Creating Razorpay Order...';
   }
 
   try {
@@ -876,14 +1120,13 @@ async function executeCheckoutPayment(){
       body: JSON.stringify({
         planId: selectedCheckoutPlanId,
         billingCycle: currentBillingCycle,
-        paymentProvider: currentPaymentProvider
+        customerEmail: (getStoredProfile() && getStoredProfile().email) || 'user@meletnova.com'
       })
     });
 
     const orderData = await response.json();
-    closeCheckoutModal();
 
-    if (currentPaymentProvider === 'razorpay' && window.Razorpay) {
+    if (window.Razorpay) {
       const options = {
         key: orderData.key || 'rzp_test_meletnova_demo123',
         amount: orderData.amount || Math.round(price * 100),
@@ -892,61 +1135,59 @@ async function executeCheckoutPayment(){
         description: `Upgrade to ${plan.name} (${currentBillingCycle})`,
         order_id: orderData.orderId,
         handler: async function (razorpayResponse) {
-          toast('Verifying payment on server...');
+          toast('Verifying payment signature on server...');
           await verifyPaymentOnServer({
             razorpay_order_id: razorpayResponse.razorpay_order_id || orderData.orderId,
             razorpay_payment_id: razorpayResponse.razorpay_payment_id || `pay_${Date.now()}`,
             razorpay_signature: razorpayResponse.razorpay_signature || 'demo_sig_verified',
             planId: selectedCheckoutPlanId,
             billingCycle: currentBillingCycle,
-            paymentProvider: 'Razorpay'
+            paymentProvider: 'Razorpay Checkout'
           });
         },
         prefill: {
-          name: getStoredProfile().name || 'Aditi Rao',
-          email: getStoredProfile().email || 'user@email.com',
-          contact: getStoredProfile().phone || '+91 98765 43210'
+          name: (getStoredProfile() && getStoredProfile().name) || 'Aditi Rao',
+          email: (getStoredProfile() && getStoredProfile().email) || 'user@meletnova.com',
+          contact: (getStoredProfile() && getStoredProfile().phone) || '+91 98765 43210'
         },
         theme: { color: '#2563EB' },
         modal: {
           ondismiss: function () {
-            toast('Payment checkout cancelled');
+            toast('Payment checkout closed');
+            if (startBtn) {
+              startBtn.disabled = false;
+              startBtn.textContent = 'Open Razorpay Checkout 🔒';
+            }
           }
         }
       };
+
       const rzp = new window.Razorpay(options);
       rzp.open();
     } else {
-      toast('Processing secure server payment...');
-      setTimeout(async () => {
-        await verifyPaymentOnServer({
-          razorpay_order_id: orderData.orderId || `ord_${Date.now()}`,
-          razorpay_payment_id: `pay_${currentPaymentProvider}_${Date.now()}`,
-          razorpay_signature: 'demo_sig_verified',
-          planId: selectedCheckoutPlanId,
-          billingCycle: currentBillingCycle,
-          paymentProvider: currentPaymentProvider === 'phonepe' ? 'PhonePe UPI' : 'Razorpay'
-        });
-      }, 900);
+      // Fallback if Razorpay SDK script is blocked
+      toast('Verifying server payment...');
+      await verifyPaymentOnServer({
+        razorpay_order_id: orderData.orderId || `ord_${Date.now()}`,
+        razorpay_payment_id: `pay_demo_${Date.now()}`,
+        razorpay_signature: 'demo_sig_verified',
+        planId: selectedCheckoutPlanId,
+        billingCycle: currentBillingCycle,
+        paymentProvider: 'Razorpay Checkout'
+      });
     }
   } catch (error) {
-    console.error('Payment error:', error);
-    await verifyPaymentOnServer({
-      razorpay_order_id: `ord_${Date.now()}`,
-      razorpay_payment_id: `pay_demo_${Date.now()}`,
-      razorpay_signature: 'demo_sig_verified',
-      planId: selectedCheckoutPlanId,
-      billingCycle: currentBillingCycle,
-      paymentProvider: currentPaymentProvider === 'phonepe' ? 'PhonePe UPI' : 'Razorpay'
-    });
+    console.error('[Checkout Error]:', error);
+    toast('Error starting checkout. Please try again.');
   } finally {
     if (startBtn) {
       startBtn.disabled = false;
-      startBtn.textContent = 'Proceed to Payment 🔒';
+      startBtn.textContent = 'Open Razorpay Checkout 🔒';
     }
   }
 }
 
+// Payment Signature Verification
 async function verifyPaymentOnServer(paymentData){
   try {
     const res = await fetch('/api/verify-payment', {
@@ -956,38 +1197,52 @@ async function verifyPaymentOnServer(paymentData){
     });
     const data = await res.json();
     if (data.success && data.subscription) {
-      saveSubscriptionState(data.subscription);
-      updateProfileSubscriptionUI();
-      renderBillingHistory();
-      showPaymentConfirmation(data.subscription);
+      handlePaymentSuccess({
+        planId: paymentData.planId,
+        billingCycle: paymentData.billingCycle,
+        transactionId: paymentData.razorpay_payment_id,
+        paymentProvider: paymentData.paymentProvider || 'Razorpay Checkout',
+        subscription: data.subscription
+      });
       return;
+    } else {
+      toast(data.error || 'Payment verification failed!');
     }
-  } catch (e) {}
+  } catch (e) {
+    console.error('[Verify Server Error]', e);
+    toast('Error connecting to verification server.');
+  }
+}
 
-  const plan = SUBSCRIPTION_CONFIG.plans[paymentData.planId] || SUBSCRIPTION_CONFIG.plans.pro;
-  const price = plan.price[paymentData.billingCycle];
-  const now = new Date();
-  const renewal = new Date();
-  if (paymentData.billingCycle === 'yearly') renewal.setFullYear(now.getFullYear() + 1);
-  else renewal.setMonth(now.getMonth() + 1);
-
-  const newSub = {
-    planId: plan.id,
-    planName: plan.name,
-    status: 'active',
-    billingCycle: paymentData.billingCycle,
-    startDate: now.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
-    nextBillingDate: renewal.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
-    amountPaid: price,
-    paymentProvider: paymentData.paymentProvider || 'Razorpay',
-    transactionId: paymentData.razorpay_payment_id || `TXN_${Date.now()}`,
-    usage: { datasets: 1, aiQueries: 8, reportsGenerated: 4, forecastsRun: 1 }
-  };
-
-  saveSubscriptionState(newSub);
+// Common Payment Success Handler (for both QR and Checkout)
+function handlePaymentSuccess(data){
+  const plan = SUBSCRIPTION_CONFIG.plans[data.planId] || SUBSCRIPTION_CONFIG.plans.pro;
+  
+  if (data.subscription) {
+    saveSubscriptionState(data.subscription);
+  }
   updateProfileSubscriptionUI();
   renderBillingHistory();
-  showPaymentConfirmation(newSub);
+
+  // Show Success Screen inside modal
+  const mainView = document.getElementById('checkoutMainView');
+  const successView = document.getElementById('checkoutSuccessView');
+  const successPlanTitle = document.getElementById('successPlanTitle');
+  const successTxnId = document.getElementById('successTxnId');
+  const successPaymentMethod = document.getElementById('successPaymentMethod');
+
+  if (mainView) mainView.style.display = 'none';
+  if (successView) successView.style.display = 'block';
+  if (successPlanTitle) successPlanTitle.textContent = `${plan.name} Plan Activated! 🎉`;
+  if (successTxnId) successTxnId.textContent = data.transactionId || 'TXN_SUCCESS';
+  if (successPaymentMethod) successPaymentMethod.textContent = data.paymentProvider || 'Razorpay';
+
+  toast(`🎉 ${plan.name} Plan Activated!`);
+}
+
+function dismissSuccessAndRefresh(){
+  closeCheckoutModal();
+  goTo('Subscriptions & Pricing');
 }
 
 function showPaymentConfirmation(sub){

@@ -1387,41 +1387,140 @@
     </div>
   </div>
 
-  <!-- ============ PAYMENT CHECKOUT MODAL ============ -->
+  <!-- ============ PAYMENT CHECKOUT MODAL (RAZORPAY QR & CHECKOUT) ============ -->
   <div class="premium-modal-backdrop" id="checkoutModal" style="display:none;">
-    <div class="premium-modal-card">
+    <div class="premium-modal-card" style="max-width:360px;padding:22px 18px;">
       <button class="modal-close-btn" onclick="closeCheckoutModal()">✕</button>
       
-      <div style="text-align:center;">
-        <span style="background:var(--lavender);color:var(--purple);font-family:'Sora';font-weight:700;font-size:10.5px;padding:3px 10px;border-radius:999px;">SECURE CHECKOUT</span>
-        <h2 style="font-family:'Sora';font-weight:800;font-size:20px;color:var(--navy);margin-top:8px;" id="checkoutPlanTitle">Upgrade to Pro</h2>
+      <!-- Checkout Main View -->
+      <div id="checkoutMainView">
+        <div style="text-align:center;">
+          <span style="background:var(--lavender);color:var(--purple);font-family:'Sora';font-weight:700;font-size:10.5px;padding:3px 10px;border-radius:999px;">RAZORPAY SECURE PAYMENT</span>
+          <h2 style="font-family:'Sora';font-weight:800;font-size:19px;color:var(--navy);margin-top:6px;" id="checkoutPlanTitle">Upgrade to Pro</h2>
+        </div>
+
+        <div style="margin-top:12px;background:#F8FAFC;border:1px solid #E2E8F0;border-radius:14px;padding:10px 14px;font-size:12.5px;">
+          <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
+            <span style="color:var(--ink-muted);" id="checkoutSelectedPlan">Pro Plan</span>
+            <span style="color:var(--navy);font-weight:600;" id="checkoutSelectedCycle">Monthly</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;padding-top:6px;border-top:1px solid #E2E8F0;">
+            <span style="font-weight:700;color:var(--navy);">Payable Amount</span>
+            <strong style="font-family:'Sora';font-size:18px;color:#2563EB;" id="checkoutTotalAmount">₹799</strong>
+          </div>
+        </div>
+
+        <!-- Mode Tabs: UPI QR vs Cards/Checkout -->
+        <div class="pay-tabs">
+          <button class="pay-tab-btn active" id="tabBtnUpiQr" onclick="switchCheckoutTab('upi_qr')">
+            <span>📱</span> UPI QR Code
+          </button>
+          <button class="pay-tab-btn" id="tabBtnCards" onclick="switchCheckoutTab('cards')">
+            <span>💳</span> Cards / Netbanking
+          </button>
+        </div>
+
+        <!-- TAB 1: UPI QR CODE VIEW -->
+        <div id="tabUpiQrView">
+          <div class="qr-box-container">
+            <!-- QR Frame with Overlay -->
+            <div class="qr-img-frame" id="qrImgFrame">
+              <img id="qrCodeImg" src="" alt="Razorpay UPI QR Code" style="display:none;" />
+              
+              <!-- Loading Overlay -->
+              <div class="qr-overlay" id="qrLoadingOverlay">
+                <div class="qr-spinner"></div>
+                <div style="font-size:11px;font-weight:600;color:var(--navy);margin-top:10px;">Generating Razorpay UPI QR...</div>
+              </div>
+
+              <!-- Expired Overlay -->
+              <div class="qr-overlay" id="qrExpiredOverlay" style="display:none;">
+                <div style="font-size:24px;margin-bottom:4px;">⏳</div>
+                <div style="font-size:12px;font-weight:700;color:#DC2626;">QR Code Expired</div>
+                <button class="btn btn-primary" style="margin-top:8px;font-size:11px;padding:5px 12px;" onclick="regenerateQrCode()">Generate New QR</button>
+              </div>
+
+              <!-- Failed Overlay -->
+              <div class="qr-overlay" id="qrFailedOverlay" style="display:none;">
+                <div style="font-size:24px;margin-bottom:4px;">⚠️</div>
+                <div style="font-size:12px;font-weight:700;color:#DC2626;" id="qrFailedMessage">Payment Failed</div>
+                <button class="btn btn-ghost" style="margin-top:8px;font-size:11px;padding:5px 12px;" onclick="regenerateQrCode()">Try Again</button>
+              </div>
+            </div>
+
+            <!-- Status Indicator -->
+            <div class="qr-status-pill" id="qrStatusPill">
+              <span class="qr-status-dot" id="qrStatusDot"></span>
+              <span id="qrStatusText">Waiting for payment...</span>
+            </div>
+
+            <!-- Countdown Timer -->
+            <div class="qr-countdown" id="qrCountdownText">⏱ Expires in 15:00</div>
+
+            <!-- Supported Apps Badges -->
+            <div class="upi-app-badges">
+              <span class="upi-badge">GPay</span>
+              <span class="upi-badge">PhonePe</span>
+              <span class="upi-badge">Paytm</span>
+              <span class="upi-badge">BHIM</span>
+              <span class="upi-badge">Cred</span>
+            </div>
+
+            <!-- Developer Simulation Button in Test Mode -->
+            <button class="qr-test-btn" id="qrSimulateBtn" onclick="simulateTestQrPayment()">
+              ⚡ Simulate QR Scan (Test Mode)
+            </button>
+          </div>
+
+          <!-- Fallback Button -->
+          <button class="btn btn-ghost" style="width:100%;margin-top:12px;font-size:12px;color:#2563EB;border:1px solid #BFDBFE;padding:9px;" onclick="fallbackToCheckoutPopup()">
+            Pay with UPI App / Cards / Netbanking instead ↗
+          </button>
+        </div>
+
+        <!-- TAB 2: CARDS & NETBANKING (RAZORPAY CHECKOUT POPUP) -->
+        <div id="tabCardsView" style="display:none;margin-top:10px;">
+          <div style="background:#F8FAFC;border:1px solid #E2E8F0;border-radius:16px;padding:14px;text-align:center;">
+            <div style="font-size:28px;margin-bottom:6px;">💳 🏦 🌐</div>
+            <div style="font-size:13px;font-weight:700;color:var(--navy);">Razorpay Standard Checkout</div>
+            <div style="font-size:11.5px;color:var(--ink-muted);margin-top:4px;line-height:1.4;">
+              Supports all Credit & Debit Cards (Visa, Mastercard, RuPay), Netbanking across 50+ banks, UPI Intent, and Wallets.
+            </div>
+          </div>
+          <button class="btn btn-primary" id="startPaymentBtn" style="width:100%;margin-top:16px;background:#2563EB;box-shadow:0 8px 20px rgba(37,99,235,0.28);font-weight:700;" onclick="executeStandardCheckout()">
+            Open Razorpay Checkout 🔒
+          </button>
+        </div>
+
+        <div style="text-align:center;font-size:10.5px;color:var(--ink-muted);margin-top:12px;">
+          🔒 256-bit SSL Encrypted • Powered by Razorpay
+        </div>
       </div>
 
-      <div style="margin-top:16px;background:#F8FAFC;border:1px solid #E2E8F0;border-radius:16px;padding:14px;font-size:13px;">
-        <div style="display:flex;justify-content:space-between;margin-bottom:8px;">
-          <span style="color:var(--ink-muted);">Plan Selected</span>
-          <strong style="color:var(--navy);" id="checkoutSelectedPlan">Pro Plan</strong>
+      <!-- Checkout Success View -->
+      <div id="checkoutSuccessView" style="display:none;text-align:center;padding:14px 6px;">
+        <div class="success-check-icon">✓</div>
+        <span style="background:#DCFCE7;color:#16A34A;font-weight:700;font-size:10.5px;padding:3px 10px;border-radius:999px;">PAYMENT SUCCESSFUL</span>
+        <h3 style="font-family:'Sora';font-weight:800;font-size:20px;color:var(--navy);margin-top:8px;" id="successPlanTitle">Pro Plan Activated!</h3>
+        <p style="font-size:12.5px;color:var(--ink-muted);margin-top:4px;" id="successPlanSubtext">
+          Thank you! Your payment has been verified and your account is upgraded.
+        </p>
+        
+        <div style="margin-top:14px;background:#F8FAFC;border:1px solid #E2E8F0;border-radius:14px;padding:12px;font-size:12px;text-align:left;">
+          <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
+            <span style="color:var(--ink-muted);">Transaction ID</span>
+            <strong style="color:var(--navy);font-family:monospace;" id="successTxnId">TXN_...</strong>
+          </div>
+          <div style="display:flex;justify-content:space-between;">
+            <span style="color:var(--ink-muted);">Payment Method</span>
+            <strong style="color:var(--navy);" id="successPaymentMethod">Razorpay UPI QR</strong>
+          </div>
         </div>
-        <div style="display:flex;justify-content:space-between;margin-bottom:8px;">
-          <span style="color:var(--ink-muted);">Billing Cycle</span>
-          <strong style="color:var(--navy);" id="checkoutSelectedCycle">Monthly</strong>
-        </div>
-        <div style="display:flex;justify-content:space-between;padding-top:8px;border-top:1px solid #E2E8F0;">
-          <span style="font-weight:700;color:var(--navy);">Total Amount</span>
-          <strong style="font-family:'Sora';font-size:18px;color:#2563EB;" id="checkoutTotalAmount">₹799</strong>
-        </div>
-      </div>
 
-      <div style="margin-top:14px;">
-        <label style="font-size:11.5px;font-weight:700;color:var(--navy);display:block;margin-bottom:6px;">SELECT PAYMENT GATEWAY</label>
-        <div style="display:flex;gap:8px;">
-          <button class="provider-choice active" id="choiceRazorpay" onclick="setCheckoutProvider('razorpay')">Razorpay (Cards/UPI)</button>
-          <button class="provider-choice" id="choicePhonepe" onclick="setCheckoutProvider('phonepe')">PhonePe (UPI/QR)</button>
-        </div>
+        <button class="btn btn-primary" style="width:100%;margin-top:18px;background:#16A34A;box-shadow:0 8px 20px rgba(22,163,74,0.28);font-weight:700;" onclick="dismissSuccessAndRefresh()">
+          Go to Dashboard 🚀
+        </button>
       </div>
-
-      <button class="btn btn-primary" id="startPaymentBtn" style="width:100%;margin-top:20px;background:#2563EB;box-shadow:0 8px 20px rgba(37,99,235,0.28);font-weight:700;" onclick="executeCheckoutPayment()">Proceed to Payment 🔒</button>
-      <div style="text-align:center;font-size:11px;color:var(--ink-muted);margin-top:10px;">🔒 256-bit Encrypted Server Payment Verification</div>
     </div>
   </div>
 
